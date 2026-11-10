@@ -1144,3 +1144,51 @@ legend {
   padding: 0.4rem 0;
   line-height: 1.35;
 }
+
+/* ---------- persone della casa ---------- */
+.persone {
+  margin-top: 2.5rem;
+  padding-top: 1.75rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.persone h2 {
+  font-size: 1.3rem;
+  font-weight: 750;
+  margin-bottom: 0.35rem;
+}
+
+.persone ul {
+  list-style: none;
+  margin: 1rem 0 1.25rem;
+  padding: 0;
+}
+
+.persone li {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--linea);
+  overflow-wrap: anywhere;
+}
+
+.persone .chi {
+  display: block;
+  font-weight: 550;
+}
+
+.persone .stato {
+  color: var(--tenue);
+  font-size: 0.9rem;
+}
+
+.persone .riga input {
+  min-width: 0;
+}
+
+.persone .fatto,
+.persone .errore {
+  margin-top: 1rem;
+}
+
+.persone .copia {
+  margin: 0.75rem 0 0 -0.75rem;
+}

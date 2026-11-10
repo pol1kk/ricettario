@@ -52,7 +52,7 @@ function Dentro({ session }: { session: Session }) {
   );
 
   if (rotta.vista === 'impostazioni') {
-    return <Impostazioni email={session.user.email ?? ''} casa={stato.tipo === 'pronto' ? stato.dati.casa?.nome : undefined} />;
+    return <Impostazioni email={session.user.email ?? ''} casa={stato.tipo === 'pronto' ? (stato.dati.casa ?? undefined) : undefined} />;
   }
 
   if (stato.tipo === 'carico') {

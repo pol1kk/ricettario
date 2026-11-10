@@ -1,8 +1,10 @@
 import { supabase } from '../lib/supabase';
 import { tornaAllElenco, vai } from '../lib/rotta';
 import ImpostaPassword from './ImpostaPassword';
+import Persone from './Persone';
+import type { Casa } from '../lib/dati';
 
-export default function Impostazioni({ email, casa }: { email: string; casa: string | undefined }) {
+export default function Impostazioni({ email, casa }: { email: string; casa: Casa | undefined }) {
   return (
     <main className="impostazioni">
       <button className="indietro secondario" onClick={tornaAllElenco}>
@@ -15,13 +17,14 @@ export default function Impostazioni({ email, casa }: { email: string; casa: str
         <h1>Impostazioni</h1>
         <p className="origine">
           Accesso come {email}
-          {casa && <>, {casa}</>}
+          {casa && <>, {casa.nome}</>}
         </p>
       </header>
       <button className="contorno" onClick={() => vai('/tag')}>
         Gestisci i tag
       </button>
       <ImpostaPassword email={email} />
+      {casa && <Persone casa={casa} email={email} />}
       <button className="esci" onClick={() => supabase.auth.signOut()}>
         Esci
       </button>
