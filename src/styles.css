@@ -324,3 +324,453 @@ button.secondario:hover {
   background: color-mix(in srgb, var(--basilico) 10%, transparent);
   border-radius: 0 var(--raggio) var(--raggio) 0;
 }
+
+/* ---------- comuni alle schermate interne ---------- */
+h3 {
+  margin: 0;
+}
+
+.solo-lettori {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.riprova {
+  margin-top: 1.5rem;
+}
+
+.indietro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin: -0.25rem 0 1.25rem -0.75rem;
+}
+
+.vuoto.piccolo h2 {
+  font-size: 1.5rem;
+}
+
+.vuoto.piccolo {
+  margin-top: 2rem;
+}
+
+/* ---------- elenco ---------- */
+.elenco .home-testa {
+  margin-bottom: 1.25rem;
+}
+
+.elenco .home-testa .secondario {
+  margin-right: -0.75rem;
+}
+
+.avviso {
+  display: block;
+  text-align: left;
+  font-weight: 550;
+  min-height: 0;
+  margin-bottom: 1.25rem;
+  padding: 0.8rem 1rem;
+  color: var(--inchiostro);
+  background: color-mix(in srgb, var(--limone) 30%, var(--carta));
+  border-radius: var(--raggio);
+}
+
+.avviso:hover {
+  background: color-mix(in srgb, var(--limone) 42%, var(--carta));
+}
+
+input[type='search'] {
+  appearance: none;
+  border-radius: 999px;
+  padding-left: 1.2rem;
+}
+
+.filtri {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  margin: 0.9rem calc(-1 * max(1.25rem, env(safe-area-inset-left))) 0;
+  padding: 0.25rem max(1.25rem, env(safe-area-inset-left));
+  scrollbar-width: none;
+}
+
+.filtri::-webkit-scrollbar {
+  display: none;
+}
+
+.filtro {
+  flex: none;
+  width: auto;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.95rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--linea);
+  background: var(--superficie);
+  color: var(--inchiostro);
+  font-weight: 550;
+  font-size: 0.98rem;
+  white-space: nowrap;
+}
+
+.filtro:hover {
+  background: var(--superficie);
+  border-color: var(--basilico);
+}
+
+.filtro.nuovo-gruppo {
+  margin-left: 0.6rem;
+}
+
+.filtro[aria-pressed='true'] {
+  background: var(--basilico);
+  border-color: var(--basilico);
+  color: var(--su-basilico);
+}
+
+.conteggio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  color: var(--tenue);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.conteggio .secondario {
+  margin-right: -0.75rem;
+}
+
+.ricette {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1.5px solid var(--linea);
+}
+
+.ricette li {
+  border-bottom: 1.5px solid var(--linea);
+}
+
+.ricette a {
+  display: block;
+  padding: 1.1rem 0 1.15rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ricette .titolo {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.ricette a:hover .titolo {
+  color: var(--basilico);
+}
+
+.ricette .dettagli {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--tenue);
+  font-size: 0.98rem;
+}
+
+.da-verificare {
+  display: inline-block;
+  margin-top: 0.55rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--limone) 38%, var(--carta));
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ---------- scheda ricetta ---------- */
+.ricetta-testa h1 {
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+.origine {
+  margin-top: 0.85rem;
+  color: var(--tenue);
+  overflow-wrap: anywhere;
+}
+
+.origine a,
+.note-ricetta a {
+  color: var(--basilico);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+}
+
+.tag-ricetta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.tempi {
+  display: flex;
+  gap: 1.75rem;
+  margin: 1.5rem 0 0;
+  padding: 0.95rem 0;
+  border-block: 1.5px solid var(--linea);
+}
+
+.tempi dt {
+  color: var(--tenue);
+  font-size: 0.88rem;
+}
+
+.tempi dd {
+  margin: 0.1rem 0 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.verifica {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--raggio);
+  background: color-mix(in srgb, var(--limone) 30%, var(--carta));
+  font-size: 0.98rem;
+}
+
+.sezione-testa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2.5rem 0 0.75rem;
+}
+
+.sezione-testa h2 {
+  font-size: 1.6rem;
+  font-weight: 750;
+}
+
+.porzioni {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: 999px;
+  padding: 0.15rem;
+}
+
+.porzioni button {
+  width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--basilico);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.porzioni button:hover {
+  background: color-mix(in srgb, var(--basilico) 12%, transparent);
+}
+
+.porzioni button:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.porzioni output {
+  min-width: 5.6rem;
+  text-align: center;
+  font-weight: 650;
+  font-size: 0.98rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.gruppo h3 {
+  margin: 1.5rem 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--basilico);
+}
+
+.gruppo:first-of-type h3 {
+  margin-top: 0.75rem;
+}
+
+.ingredienti,
+.passaggi {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingredienti li + li {
+  border-top: 1px solid var(--linea);
+}
+
+.ingredienti button,
+.passaggi button {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  width: 100%;
+  min-height: 0;
+  padding: 0.7rem 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+  transition: opacity 0.15s ease;
+}
+
+.ingredienti button:hover,
+.passaggi button:hover {
+  background: transparent;
+}
+
+.ingredienti button:active,
+.passaggi button:active {
+  transform: none;
+}
+
+.quanto {
+  flex: none;
+  width: 4.6rem;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cosa small {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--tenue);
+  font-size: 0.88rem;
+}
+
+.cosa em {
+  color: var(--tenue);
+}
+
+[aria-pressed='true'] > .cosa,
+[aria-pressed='true'] > .quanto,
+[aria-pressed='true'] > .testo {
+  opacity: 0.4;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.ricalcolo {
+  margin-top: 0.9rem;
+}
+
+.ricalcolo .secondario {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.passaggi button {
+  padding: 0.8rem 0;
+  gap: 1rem;
+  line-height: 1.5;
+}
+
+.numero {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--basilico);
+  color: var(--su-basilico);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transform: translateY(0.1rem);
+}
+
+[aria-pressed='true'] > .numero {
+  background: var(--linea);
+  color: var(--tenue);
+}
+
+.note-ricetta {
+  color: var(--tenue);
+  max-width: 60ch;
+}
+
+/* ---------- impostazioni ---------- */
+.impostazioni .scheda,
+.impostazioni .password-chiusa {
+  margin-top: 2rem;
+}
+
+.esci {
+  margin-top: 1.5rem;
+  background: transparent;
+  color: var(--pomodoro);
+  border: 1.5px solid var(--linea);
+}
+
+.esci:hover {
+  background: color-mix(in srgb, var(--pomodoro) 8%, transparent);
+}
+
+/* ---------- passaggio tra schermate ---------- */
+@keyframes esce-sinistra {
+  to {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+@keyframes entra-destra {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+@keyframes esce-destra {
+  to {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+@keyframes entra-sinistra {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: 0.14s ease-in both esce-sinistra;
+}
+::view-transition-new(root) {
+  animation: 0.22s ease-out 0.06s both entra-destra;
+}
+[data-direzione='indietro']::view-transition-old(root) {
+  animation-name: esce-destra;
+}
+[data-direzione='indietro']::view-transition-new(root) {
+  animation-name: entra-sinistra;
+}

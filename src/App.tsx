@@ -1,8 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
+import { caricaDati, type Dati } from './lib/dati';
+import { usaRotta } from './lib/rotta';
 import Login from './screens/Login';
-import Home from './screens/Home';
+import Elenco, { FILTRI_VUOTI, type Filtri } from './screens/Elenco';
+import SchedaRicetta from './screens/Ricetta';
+import Impostazioni from './screens/Impostazioni';
+
+type Stato = { tipo: 'carico' } | { tipo: 'errore'; messaggio: string } | { tipo: 'pronto'; dati: Dati };
 
 export default function App() {
   // undefined = sessione non ancora letta; null = nessun accesso
@@ -15,5 +21,72 @@ export default function App() {
   }, []);
 
   if (session === undefined) return null;
-  return session ? <Home session={session} /> : <Login />;
+  return session ? <Dentro session={session} /> : <Login />;
+}
+
+function Dentro({ session }: { session: Session }) {
+  const rotta = usaRotta();
+  const [stato, setStato] = useState<Stato>({ tipo: 'carico' });
+  const [filtri, setFiltri] = useState<Filtri>(FILTRI_VUOTI);
+  const utente = session.user.id;
+
+  const carica = useCallback(() => {
+    setStato({ tipo: 'carico' });
+    caricaDati().then(
+      (dati) => setStato({ tipo: 'pronto', dati }),
+      (e: Error) => setStato({ tipo: 'errore', messaggio: e.message }),
+    );
+  }, []);
+
+  useEffect(carica, [carica, utente]);
+
+  if (rotta.vista === 'impostazioni') {
+    return <Impostazioni email={session.user.email ?? ''} casa={stato.tipo === 'pronto' ? stato.dati.casa?.nome : undefined} />;
+  }
+
+  if (stato.tipo === 'carico') {
+    return (
+      <main>
+        <p className="nota">Carico le ricette…</p>
+      </main>
+    );
+  }
+
+  if (stato.tipo === 'errore') {
+    return (
+      <main>
+        <p role="alert" className="errore">
+          Non riesco a leggere i dati: {stato.messaggio}. Controlla la connessione.
+        </p>
+        <button className="riprova" onClick={carica}>
+          Riprova
+        </button>
+      </main>
+    );
+  }
+
+  const { dati } = stato;
+
+  if (!dati.casa) {
+    return (
+      <main>
+        <section className="vuoto">
+          <h2>Questa email non è collegata a nessuna casa</h2>
+          <p>
+            Hai fatto l'accesso come {session.user.email}. Chiedi un invito a chi gestisce la casa, oppure esci e
+            rientra con l'email invitata.
+          </p>
+        </section>
+        <button className="riprova" onClick={() => supabase.auth.signOut()}>
+          Esci
+        </button>
+      </main>
+    );
+  }
+
+  if (rotta.vista === 'ricetta') {
+    return <SchedaRicetta ricetta={dati.ricette.find((r) => r.id === rotta.id)} />;
+  }
+
+  return <Elenco dati={dati} filtri={filtri} setFiltri={setFiltri} />;
 }
