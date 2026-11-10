@@ -6,6 +6,7 @@ export type Passaggio = { testo: string; gruppo?: string };
 export type IngredienteRicetta = {
   id: string;
   nome: string;
+  icona: string | null;
   quantita: number | null;
   unita: Unita | null;
   testo_originale: string | null;
@@ -25,16 +26,23 @@ export type Ricetta = {
   note: string | null;
   da_verificare: boolean;
   note_verifica: string | null;
+  copertina_path: string | null;
+  /** indirizzo temporaneo della foto, valido un giorno; null se non c'è foto */
+  copertina_url: string | null;
   tag: Tag[];
   ingredienti: IngredienteRicetta[];
   /** testo minuscolo su cui gira la ricerca: titolo, autore e nomi degli ingredienti */
   cerca: string;
 };
-export type Dati = { casa: { nome: string } | null; tag: Tag[]; ricette: Ricetta[] };
+export type Casa = { id: string; nome: string; soglia_veloce_minuti: number };
+export type Dati = { casa: Casa | null; tag: Tag[]; ricette: Ricetta[] };
 
-type RigaRicetta = Omit<Ricetta, 'tag' | 'ingredienti' | 'cerca'> & {
+type RigaRicetta = Omit<Ricetta, 'tag' | 'ingredienti' | 'cerca' | 'copertina_url'> & {
   ricetta_tag: { tag_id: string }[];
-  ricetta_ingredienti: (Omit<IngredienteRicetta, 'nome'> & { posizione: number; ingredienti: { nome: string } })[];
+  ricetta_ingredienti: (Omit<IngredienteRicetta, 'nome' | 'icona'> & {
+    posizione: number;
+    ingredienti: { nome: string; icona: string | null };
+  })[];
 };
 
 const semplifica = (s: string) =>
@@ -44,15 +52,15 @@ export { semplifica };
 
 export async function caricaDati(): Promise<Dati> {
   const [casa, tag, ricette] = await Promise.all([
-    supabase.from('case').select('nome, soglia_veloce_minuti').limit(1),
+    supabase.from('case').select('id, nome, soglia_veloce_minuti').limit(1),
     supabase.from('tag').select('id, nome, gruppo, ordine, automatico').order('ordine'),
     supabase
       .from('ricette')
       .select(
         `id, titolo, autore, reel_url, porzioni, minuti_preparazione, minuti_cottura, minuti_totali,
-         passaggi, note, da_verificare, note_verifica,
+         passaggi, note, da_verificare, note_verifica, copertina_path,
          ricetta_tag ( tag_id ),
-         ricetta_ingredienti ( id, quantita, unita, testo_originale, gruppo, facoltativo, posizione, ingredienti ( nome ) )`,
+         ricetta_ingredienti ( id, quantita, unita, testo_originale, gruppo, facoltativo, posizione, ingredienti ( nome, icona ) )`,
       )
       .order('titolo'),
   ]);
@@ -62,26 +70,37 @@ export async function caricaDati(): Promise<Dati> {
   const tutti = (tag.data ?? []) as Tag[];
   const perId = new Map(tutti.map((t) => [t.id, t]));
   const soglia: number = casa.data?.[0]?.soglia_veloce_minuti ?? 20;
-  const veloce = tutti.find((t) => t.automatico && t.nome === 'veloce');
+  const veloce = tutti.find((t) => t.automatico);
 
-  const elenco = ((ricette.data ?? []) as unknown as RigaRicetta[]).map((r): Ricetta => {
+  const righe = (ricette.data ?? []) as unknown as RigaRicetta[];
+
+  // le foto stanno in uno spazio privato: si leggono con indirizzi firmati, chiesti tutti insieme
+  const percorsi = righe.map((r) => r.copertina_path).filter((p): p is string => !!p);
+  const indirizzi = new Map<string, string>();
+  if (percorsi.length) {
+    const firmati = await supabase.storage.from('copertine').createSignedUrls(percorsi, 60 * 60 * 24);
+    for (const f of firmati.data ?? []) if (f.path && f.signedUrl) indirizzi.set(f.path, f.signedUrl);
+  }
+
+  const elenco = righe.map((r): Ricetta => {
     const { ricetta_tag, ricetta_ingredienti, ...resto } = r;
     const suoi = ricetta_tag.map((x) => perId.get(x.tag_id)).filter((t): t is Tag => !!t);
     // "veloce" non è assegnato a mano: vale per le ricette sotto la soglia di tempo della casa
     if (veloce && r.minuti_totali !== null && r.minuti_totali <= soglia) suoi.push(veloce);
     const ingredienti = [...ricetta_ingredienti]
       .sort((a, b) => a.posizione - b.posizione)
-      .map(({ ingredienti, posizione: _p, ...i }) => ({ ...i, nome: ingredienti.nome }));
+      .map(({ ingredienti, posizione: _p, ...i }) => ({ ...i, nome: ingredienti.nome, icona: ingredienti.icona }));
     return {
       ...resto,
       passaggi: Array.isArray(r.passaggi) ? r.passaggi : [],
+      copertina_url: (r.copertina_path && indirizzi.get(r.copertina_path)) || null,
       tag: suoi.sort((a, b) => a.ordine - b.ordine),
       ingredienti,
       cerca: semplifica([r.titolo, r.autore ?? '', ...ingredienti.map((i) => i.nome)].join(' ')),
     };
   });
 
-  return { casa: casa.data?.[0] ? { nome: casa.data[0].nome } : null, tag: tutti, ricette: elenco };
+  return { casa: (casa.data?.[0] as Casa | undefined) ?? null, tag: tutti, ricette: elenco };
 }
 
 /** "45 min", "2 h", "1 h 30 min" */

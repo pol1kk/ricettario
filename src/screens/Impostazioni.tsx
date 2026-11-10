@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { tornaAllElenco } from '../lib/rotta';
+import { tornaAllElenco, vai } from '../lib/rotta';
 import ImpostaPassword from './ImpostaPassword';
 
 export default function Impostazioni({ email, casa }: { email: string; casa: string | undefined }) {
@@ -18,6 +18,9 @@ export default function Impostazioni({ email, casa }: { email: string; casa: str
           {casa && <>, {casa}</>}
         </p>
       </header>
+      <button className="contorno" onClick={() => vai('/tag')}>
+        Gestisci i tag
+      </button>
       <ImpostaPassword email={email} />
       <button className="esci" onClick={() => supabase.auth.signOut()}>
         Esci

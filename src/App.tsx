@@ -7,6 +7,7 @@ import Login from './screens/Login';
 import Elenco, { FILTRI_VUOTI, type Filtri } from './screens/Elenco';
 import SchedaRicetta from './screens/Ricetta';
 import Impostazioni from './screens/Impostazioni';
+import GestioneTag from './screens/GestioneTag';
 
 type Stato = { tipo: 'carico' } | { tipo: 'errore'; messaggio: string } | { tipo: 'pronto'; dati: Dati };
 
@@ -39,6 +40,16 @@ function Dentro({ session }: { session: Session }) {
   }, []);
 
   useEffect(carica, [carica, utente]);
+
+  // dopo una modifica: rilegge i dati senza far sparire la schermata
+  const ricarica = useCallback(
+    () =>
+      caricaDati().then(
+        (dati) => setStato({ tipo: 'pronto', dati }),
+        (e: Error) => setStato({ tipo: 'errore', messaggio: e.message }),
+      ),
+    [],
+  );
 
   if (rotta.vista === 'impostazioni') {
     return <Impostazioni email={session.user.email ?? ''} casa={stato.tipo === 'pronto' ? stato.dati.casa?.nome : undefined} />;
@@ -85,7 +96,19 @@ function Dentro({ session }: { session: Session }) {
   }
 
   if (rotta.vista === 'ricetta') {
-    return <SchedaRicetta ricetta={dati.ricette.find((r) => r.id === rotta.id)} />;
+    return (
+      <SchedaRicetta
+        key={rotta.id}
+        ricetta={dati.ricette.find((r) => r.id === rotta.id)}
+        casa={dati.casa}
+        tag={dati.tag}
+        ricarica={ricarica}
+      />
+    );
+  }
+
+  if (rotta.vista === 'tag') {
+    return <GestioneTag dati={dati} casa={dati.casa} ricarica={ricarica} />;
   }
 
   return <Elenco dati={dati} filtri={filtri} setFiltri={setFiltri} />;

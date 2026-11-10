@@ -4,12 +4,14 @@ import { flushSync } from 'react-dom';
 export type Rotta =
   | { vista: 'elenco' }
   | { vista: 'ricetta'; id: string }
-  | { vista: 'impostazioni' };
+  | { vista: 'impostazioni' }
+  | { vista: 'tag' };
 
 function leggi(hash: string): Rotta {
   const m = hash.match(/^#\/ricetta\/([0-9a-f-]{36})$/);
   if (m) return { vista: 'ricetta', id: m[1] };
   if (hash === '#/impostazioni') return { vista: 'impostazioni' };
+  if (hash === '#/tag') return { vista: 'tag' };
   return { vista: 'elenco' }; // comprende anche i frammenti del link di accesso via email
 }
 

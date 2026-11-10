@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { formattaMinuti, formattaQuantita, type Ricetta } from '../lib/dati';
+import { formattaMinuti, formattaQuantita, type Casa, type Ricetta, type Tag } from '../lib/dati';
+import Copertina from './Copertina';
+import ModificaRicetta from './ModificaRicetta';
 import { tornaAllElenco } from '../lib/rotta';
 
 /** Raggruppa elementi consecutivi con lo stesso gruppo, mantenendo l'ordine della ricetta. */
@@ -29,8 +31,20 @@ function Indietro() {
   );
 }
 
-export default function SchedaRicetta({ ricetta }: { ricetta: Ricetta | undefined }) {
-  const [porzioni, setPorzioni] = useState(ricetta?.porzioni ?? 2);
+export default function SchedaRicetta({
+  ricetta,
+  casa,
+  tag,
+  ricarica,
+}: {
+  ricetta: Ricetta | undefined;
+  casa: Casa;
+  tag: Tag[];
+  ricarica: () => Promise<void>;
+}) {
+  const [inModifica, setInModifica] = useState(false);
+  // null = porzioni della ricetta; così una correzione delle porzioni si riflette subito
+  const [scelte, setPorzioni] = useState<number | null>(null);
   const [usati, setUsati] = useState<Set<string>>(new Set());
   const [fatti, setFatti] = useState<Set<number>>(new Set());
 
@@ -43,6 +57,22 @@ export default function SchedaRicetta({ ricetta }: { ricetta: Ricetta | undefine
           <p>Potrebbe essere stata eliminata. Torna all'elenco per vedere quelle disponibili.</p>
         </section>
       </main>
+    );
+  }
+
+  const porzioni = scelte ?? ricetta.porzioni;
+
+  if (inModifica) {
+    return (
+      <ModificaRicetta
+        ricetta={ricetta}
+        tag={tag}
+        ricarica={ricarica}
+        chiudi={() => {
+          setInModifica(false);
+          window.scrollTo(0, 0);
+        }}
+      />
     );
   }
 
@@ -64,7 +94,14 @@ export default function SchedaRicetta({ ricetta }: { ricetta: Ricetta | undefine
 
   return (
     <main className="ricetta">
-      <Indietro />
+      <div className="barra">
+        <Indietro />
+        <button className="secondario" onClick={() => { setInModifica(true); window.scrollTo(0, 0); }}>
+          Correggi
+        </button>
+      </div>
+
+      <Copertina ricetta={ricetta} casaId={casa.id} ricarica={ricarica} />
 
       <header className="ricetta-testa">
         <h1>{ricetta.titolo}</h1>
@@ -101,7 +138,8 @@ export default function SchedaRicetta({ ricetta }: { ricetta: Ricetta | undefine
 
       {ricetta.da_verificare && (
         <p className="verifica">
-          <strong>Da verificare.</strong> {ricetta.note_verifica ?? 'Alcune quantità sono stimate.'}
+          <strong>Da verificare.</strong> {ricetta.note_verifica ?? 'Alcune quantità sono stimate.'} Tocca
+          «Correggi» per sistemarle.
         </p>
       )}
 
@@ -129,6 +167,9 @@ export default function SchedaRicetta({ ricetta }: { ricetta: Ricetta | undefine
                 <li key={i.id}>
                   <button aria-pressed={usati.has(i.id)} onClick={() => setUsati(alterna(usati, i.id))}>
                     <span className="quanto">{formattaQuantita(i.quantita, i.unita, fattore)}</span>
+                    <span className="icona" aria-hidden="true">
+                      {i.icona}
+                    </span>
                     <span className="cosa">
                       {i.nome}
                       {i.facoltativo && <em> (facoltativo)</em>}
@@ -145,7 +186,7 @@ export default function SchedaRicetta({ ricetta }: { ricetta: Ricetta | undefine
         {fattore !== 1 && (
           <p className="nota ricalcolo">
             Quantità ricalcolate e arrotondate da {ricetta.porzioni} porzioni.{' '}
-            <button className="secondario" onClick={() => setPorzioni(ricetta.porzioni)}>
+            <button className="secondario" onClick={() => setPorzioni(null)}>
               Torna alle dosi originali
             </button>
           </p>

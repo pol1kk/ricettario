@@ -774,3 +774,373 @@ input[type='search'] {
 [data-direzione='indietro']::view-transition-new(root) {
   animation-name: entra-sinistra;
 }
+
+/* ---------- controlli aggiunti con la fase 1 ---------- */
+select {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: var(--raggio);
+  padding: 0.85rem 1rem;
+}
+
+button.contorno {
+  background: transparent;
+  color: var(--basilico);
+  border: 1.5px solid var(--linea);
+}
+
+button.contorno:hover {
+  background: color-mix(in srgb, var(--basilico) 8%, transparent);
+}
+
+button.contorno.rosso {
+  color: var(--pomodoro);
+}
+
+button.contorno.rosso:hover {
+  background: color-mix(in srgb, var(--pomodoro) 8%, transparent);
+}
+
+.azioni {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.azioni .secondario {
+  align-self: center;
+}
+
+.spunta {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 2.75rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.spunta input {
+  flex: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  accent-color: var(--basilico);
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+legend {
+  padding: 0;
+  color: var(--tenue);
+  font-size: 0.95rem;
+}
+
+/* ---------- copertina ---------- */
+.segnaposto {
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--basilico) 16%, var(--carta));
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+.segnaposto.tinta-1 {
+  background: color-mix(in srgb, var(--limone) 34%, var(--carta));
+}
+
+.segnaposto.tinta-2 {
+  background: color-mix(in srgb, var(--pomodoro) 16%, var(--carta));
+}
+
+.segnaposto.tinta-3 {
+  background: color-mix(in srgb, var(--inchiostro) 9%, var(--carta));
+}
+
+.copertina {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.copertina > img,
+.copertina > .segnaposto {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: calc(var(--raggio) + 6px);
+}
+
+.scatta {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  margin: 0;
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--inchiostro);
+  font-size: 0.95rem;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+.scatta:focus-within {
+  outline: 3px solid var(--limone);
+  outline-offset: 2px;
+}
+
+.scatta.occupato {
+  cursor: progress;
+  opacity: 0.8;
+}
+
+.copertina .errore {
+  margin-top: 0.75rem;
+}
+
+.ricette a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.miniatura {
+  flex: none;
+  width: 4.75rem;
+  height: 4.75rem;
+  object-fit: cover;
+  border-radius: var(--raggio);
+  font-size: 2.1rem;
+}
+
+.testi {
+  min-width: 0;
+}
+
+.ricette .titolo {
+  font-size: 1.25rem;
+}
+
+.barra {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.barra > .secondario:last-child {
+  margin: -0.25rem -0.75rem 0 0;
+}
+
+.icona {
+  flex: none;
+  width: 1.5rem;
+  text-align: center;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.ingredienti button {
+  gap: 0.65rem;
+}
+
+.quanto {
+  width: 4.2rem;
+}
+
+[aria-pressed='true'] > .icona {
+  opacity: 0.4;
+}
+
+/* ---------- correzione ricetta ---------- */
+.modifica h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.modifica h2 {
+  margin-top: 1.5rem;
+  font-size: 1.3rem;
+  font-weight: 750;
+}
+
+.tre-campi {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.tre-campi label {
+  margin-bottom: 0.4rem;
+  font-size: 0.92rem;
+}
+
+.scelta-tag {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+}
+
+.scelta-tag legend {
+  width: 100%;
+}
+
+.quantita {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.quantita li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--linea);
+}
+
+.quantita label {
+  margin: 0;
+  font-weight: 550;
+}
+
+.quantita small {
+  display: block;
+  color: var(--tenue);
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+.campo-unita {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.campo-unita input {
+  width: 5.2rem;
+  padding: 0.6rem 0.7rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.campo-unita span {
+  width: 1.6rem;
+  color: var(--tenue);
+}
+
+.verificata {
+  margin-top: 1rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--raggio);
+  background: color-mix(in srgb, var(--limone) 30%, var(--carta));
+}
+
+/* ---------- gestione tag ---------- */
+.nuovo-tag {
+  margin-top: 1.5rem;
+}
+
+.gruppo-tag h2 {
+  margin: 2rem 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--basilico);
+}
+
+.gruppo-tag ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--linea);
+}
+
+.gruppo-tag li {
+  border-bottom: 1px solid var(--linea);
+}
+
+.riga-tag {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 3.25rem;
+  padding: 0.5rem 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 550;
+  text-align: left;
+}
+
+.riga-tag:hover {
+  background: transparent;
+  color: var(--basilico);
+}
+
+.riga-tag:active {
+  transform: none;
+}
+
+.quante {
+  color: var(--tenue);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.editor-tag {
+  margin: 0.25rem 0 1.25rem;
+}
+
+.gestione-tag > .editor-tag {
+  margin-top: 1.5rem;
+}
+
+.scelta-ricette {
+  margin-top: 0.5rem;
+}
+
+.pericolo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.pericolo label {
+  margin-bottom: -0.3rem;
+}
+
+.riga {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.riga button {
+  width: auto;
+  flex: none;
+}
+
+.impostazioni > .contorno {
+  margin-top: 2rem;
+}
+
+.scelta-ricette .spunta {
+  align-items: flex-start;
+  padding: 0.4rem 0;
+  line-height: 1.35;
+}

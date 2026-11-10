@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { formattaMinuti, semplifica, type Dati, type Ricetta } from '../lib/dati';
 import { passwordImpostata } from '../lib/password';
 import { vai } from '../lib/rotta';
+import { Miniatura } from './Copertina';
 
 export type Filtri = { testo: string; tag: string[]; minuti: number | null };
 export const FILTRI_VUOTI: Filtri = { testo: '', tag: [], minuti: null };
@@ -135,11 +136,14 @@ export default function Elenco({
                       vai(`/ricetta/${r.id}`);
                     }}
                   >
-                    <span className="titolo">{r.titolo}</span>
-                    <span className="dettagli">
-                      {[formattaMinuti(r.minuti_totali), ...r.tag.map((t) => t.nome)].filter(Boolean).join(', ')}
+                    <Miniatura ricetta={r} />
+                    <span className="testi">
+                      <span className="titolo">{r.titolo}</span>
+                      <span className="dettagli">
+                        {[formattaMinuti(r.minuti_totali), ...r.tag.map((t) => t.nome)].filter(Boolean).join(', ')}
+                      </span>
+                      {r.da_verificare && <span className="da-verificare">Da verificare</span>}
                     </span>
-                    {r.da_verificare && <span className="da-verificare">Da verificare</span>}
                   </a>
                 </li>
               ))}
