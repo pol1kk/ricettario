@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import ImpostaPassword from './ImpostaPassword';
 
 type Tag = { id: string; nome: string; gruppo: string; ordine: number };
 type Stato =
@@ -100,6 +101,8 @@ export default function Home({ session }: { session: Session }) {
               ))}
             </dl>
           </section>
+
+          <ImpostaPassword email={session.user.email ?? ''} />
 
           <footer className="piede">
             {stato.casa}, accesso come {session.user.email}

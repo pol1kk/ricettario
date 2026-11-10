@@ -1,47 +1,76 @@
 import { useState, type FormEvent } from 'react';
 import { supabase, APP_URL } from '../lib/supabase';
+import { ricordaPasswordImpostata } from '../lib/password';
 
-type Passo = 'email' | 'codice';
+type Modo = 'password' | 'link' | 'link-inviato';
 
 export default function Login() {
-  const [passo, setPasso] = useState<Passo>('email');
+  const [modo, setModo] = useState<Modo>('password');
   const [email, setEmail] = useState('');
-  const [codice, setCodice] = useState('');
+  const [password, setPassword] = useState('');
   const [attesa, setAttesa] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
 
-  async function inviaEmail(e: FormEvent) {
+  const indirizzo = email.trim().toLowerCase();
+
+  function cambia(nuovo: Modo) {
+    setModo(nuovo);
+    setErrore(null);
+  }
+
+  async function entra(e: FormEvent) {
+    e.preventDefault();
+    setAttesa(true);
+    setErrore(null);
+    const { error } = await supabase.auth.signInWithPassword({ email: indirizzo, password });
+    setAttesa(false);
+    if (error) {
+      setErrore(
+        error.status === 400
+          ? 'Email o password non corrette. Se non hai ancora una password, entra con il link via email.'
+          : `Accesso non riuscito: ${error.message}`,
+      );
+      return;
+    }
+    ricordaPasswordImpostata();
+  }
+
+  async function inviaLink(e: FormEvent) {
     e.preventDefault();
     setAttesa(true);
     setErrore(null);
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
+      email: indirizzo,
       options: { emailRedirectTo: APP_URL },
     });
     setAttesa(false);
     if (error) {
       setErrore(
         error.status === 429
-          ? 'Troppe richieste ravvicinate. Aspetta un minuto e riprova.'
+          ? 'Troppe richieste ravvicinate. Aspetta qualche minuto e riprova.'
           : `Email non inviata: ${error.message}`,
       );
       return;
     }
-    setPasso('codice');
+    setModo('link-inviato');
   }
 
-  async function verificaCodice(e: FormEvent) {
-    e.preventDefault();
-    setAttesa(true);
-    setErrore(null);
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: codice.trim(),
-      type: 'email',
-    });
-    setAttesa(false);
-    if (error) setErrore('Codice non valido o scaduto. Controlla le cifre o chiedi una nuova email.');
-  }
+  const campoEmail = (
+    <>
+      <label htmlFor="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        inputMode="email"
+        autoComplete="username"
+        autoCapitalize="none"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="nome@esempio.it"
+      />
+    </>
+  );
 
   return (
     <main className="login">
@@ -51,58 +80,55 @@ export default function Login() {
         <p>Le ricette salvate dai reel, il menù della settimana e quello che c'è in dispensa.</p>
       </header>
 
-      {passo === 'email' ? (
-        <form onSubmit={inviaEmail} className="modulo" key="email">
-          <label htmlFor="email">La tua email</label>
+      {modo === 'password' && (
+        <form onSubmit={entra} className="modulo" key="password">
+          {campoEmail}
+          <label htmlFor="password">Password</label>
           <input
-            id="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
+            id="password"
+            type="password"
+            autoComplete="current-password"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="nome@esempio.it"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
           <button type="submit" disabled={attesa}>
-            {attesa ? 'Invio in corso…' : 'Invia email di accesso'}
+            {attesa ? 'Accesso in corso…' : 'Entra'}
           </button>
-          <p className="nota">Niente password: ricevi un'email e da lì entri.</p>
+          <button type="button" className="secondario" onClick={() => cambia('link')}>
+            Primo accesso o password dimenticata
+          </button>
         </form>
-      ) : (
-        <form onSubmit={verificaCodice} className="modulo" key="codice">
+      )}
+
+      {modo === 'link' && (
+        <form onSubmit={inviaLink} className="modulo" key="link">
           <p className="conferma">
-            Email inviata a <strong>{email.trim().toLowerCase()}</strong>. Apri il link che contiene, oppure
-            scrivi qui il codice.
+            Ricevi un link via email, aprilo e poi scegli una password dalla schermata iniziale.
           </p>
-          <label htmlFor="codice">Codice ricevuto</label>
-          <input
-            id="codice"
-            className="codice"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]{6,10}"
-            required
-            value={codice}
-            onChange={(e) => setCodice(e.target.value.replace(/\D/g, ''))}
-            placeholder="000000"
-          />
+          {campoEmail}
           <button type="submit" disabled={attesa}>
-            {attesa ? 'Verifica in corso…' : 'Entra'}
+            {attesa ? 'Invio in corso…' : 'Invia link di accesso'}
           </button>
-          <button
-            type="button"
-            className="secondario"
-            onClick={() => {
-              setPasso('email');
-              setCodice('');
-              setErrore(null);
-            }}
-          >
-            Usa un'altra email
+          <button type="button" className="secondario" onClick={() => cambia('password')}>
+            Ho già una password
           </button>
         </form>
+      )}
+
+      {modo === 'link-inviato' && (
+        <div className="modulo" key="inviato">
+          <p className="conferma">
+            Email inviata a <strong>{indirizzo}</strong>. Apri il link dal browser di questo dispositivo.
+          </p>
+          <p className="nota">
+            Il link apre il browser, non l'app installata nella schermata Home. Per entrare da lì scegli una
+            password dopo l'accesso e usala nell'app.
+          </p>
+          <button type="button" className="secondario" onClick={() => cambia('password')}>
+            Torna all'accesso con password
+          </button>
+        </div>
       )}
 
       {errore && (

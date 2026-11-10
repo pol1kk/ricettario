@@ -290,3 +290,37 @@ button.secondario:hover {
     transition: none !important;
   }
 }
+
+/* ---------- password ---------- */
+.scheda {
+  margin-top: 3rem;
+  padding: 1.25rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: calc(var(--raggio) + 4px);
+}
+
+.scheda h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.scheda .nota + label {
+  margin-top: 0.35rem;
+}
+
+.password-chiusa {
+  margin-top: 2.5rem;
+}
+
+.password-chiusa .secondario {
+  margin-left: -0.75rem;
+}
+
+.fatto {
+  margin-bottom: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid var(--basilico);
+  background: color-mix(in srgb, var(--basilico) 10%, transparent);
+  border-radius: 0 var(--raggio) var(--raggio) 0;
+}
