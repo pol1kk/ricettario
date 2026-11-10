@@ -1,0 +1,51 @@
+name: Backup settimanale del database
+
+# Esporta i dati in un repository PRIVATO (questo è pubblico: i dati non devono finire qui).
+# Fa anche attività sul database, utile contro la pausa per inattività del piano gratuito.
+# Richiede due secret del repository:
+#   SUPABASE_DB_URL  stringa di connessione "Session pooler" di Supabase, con la password
+#   BACKUP_TOKEN     token GitHub con permesso di scrittura su pol1kk/ricettario-backup
+
+on:
+  schedule:
+    - cron: '17 3 * * 1,4'   # lunedì e giovedì notte
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_TOKEN: ${{ secrets.BACKUP_TOKEN }}
+    steps:
+      - name: Controlla la configurazione
+        id: cfg
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_TOKEN" ]; then
+            echo "::warning::Backup non configurato: mancano i secret SUPABASE_DB_URL e/o BACKUP_TOKEN."
+            echo "pronto=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "pronto=si" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Esporta il database
+        if: steps.cfg.outputs.pronto == 'si'
+        run: |
+          docker run --rm -e PGURL="$SUPABASE_DB_URL" postgres:17 \
+            sh -c 'pg_dump "$PGURL" --schema=public --schema=private --no-owner --no-privileges' > ricettario.sql
+          test -s ricettario.sql
+          grep -q 'CREATE TABLE public.ricette' ricettario.sql
+      - name: Salva nel repository privato
+        if: steps.cfg.outputs.pronto == 'si'
+        run: |
+          git clone --depth 1 "https://x-access-token:${BACKUP_TOKEN}@github.com/pol1kk/ricettario-backup.git" dest
+          mv ricettario.sql dest/ricettario.sql
+          cd dest
+          git config user.name "backup-ricettario"
+          git config user.email "backup@users.noreply.github.com"
+          git add ricettario.sql
+          git diff --cached --quiet && { echo "Nessuna modifica dall'ultimo backup."; exit 0; }
+          git commit -m "Backup $(date -u +%F)"
+          git push

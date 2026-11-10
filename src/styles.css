@@ -1,0 +1,292 @@
+:root {
+  --carta: #f2f5ee;
+  --superficie: #ffffff;
+  --inchiostro: #1c2621;
+  --tenue: #5a675f;
+  --linea: #d5dccf;
+  --basilico: #2f6b4f;
+  --basilico-scuro: #235340;
+  --su-basilico: #ffffff;
+  --limone: #e9c542;
+  --pomodoro: #b63d28;
+  --raggio: 14px;
+  --font: 'Bricolage Grotesque Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --carta: #141a17;
+    --superficie: #1d2521;
+    --inchiostro: #e8eee6;
+    --tenue: #9aa89f;
+    --linea: #2f3b34;
+    --basilico: #6fbf94;
+    --basilico-scuro: #86d0a8;
+    --su-basilico: #10231a;
+    --pomodoro: #f08a75;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--carta);
+  color: var(--inchiostro);
+  font-family: var(--font);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2 {
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+main {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 1.5rem) max(1.25rem, env(safe-area-inset-left))
+    calc(env(safe-area-inset-bottom) + 2rem) max(1.25rem, env(safe-area-inset-right));
+}
+
+/* ---------- controlli ---------- */
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+input {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: var(--raggio);
+  padding: 0.85rem 1rem;
+}
+
+input::placeholder {
+  color: var(--tenue);
+  opacity: 0.7;
+}
+
+input.codice {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  font: inherit;
+  font-weight: 650;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.85rem 1.25rem;
+  border: 0;
+  border-radius: var(--raggio);
+  background: var(--basilico);
+  color: var(--su-basilico);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+button:hover {
+  background: var(--basilico-scuro);
+}
+
+button:active {
+  transform: scale(0.985);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+button.secondario {
+  background: transparent;
+  color: var(--basilico);
+  min-height: 2.75rem;
+  width: auto;
+  padding: 0.5rem 0.75rem;
+}
+
+button.secondario:hover {
+  background: color-mix(in srgb, var(--basilico) 10%, transparent);
+}
+
+:focus-visible {
+  outline: 3px solid var(--limone);
+  outline-offset: 2px;
+}
+
+.nota {
+  color: var(--tenue);
+  font-size: 0.95rem;
+}
+
+.errore {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid var(--pomodoro);
+  background: color-mix(in srgb, var(--pomodoro) 9%, transparent);
+  border-radius: 0 var(--raggio) var(--raggio) 0;
+}
+
+/* ---------- accesso ---------- */
+.login {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2.25rem;
+}
+
+.login-testa img {
+  display: block;
+  margin-bottom: 1.25rem;
+  border-radius: 14px;
+}
+
+.login-testa h1 {
+  font-size: clamp(3rem, 15vw, 4.75rem);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  margin-bottom: 1rem;
+}
+
+.login-testa p {
+  color: var(--tenue);
+  max-width: 26ch;
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.modulo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: entra 0.25s ease both;
+}
+
+.modulo label {
+  margin-bottom: -0.3rem;
+}
+
+.modulo .secondario {
+  align-self: center;
+}
+
+.conferma {
+  padding-bottom: 0.5rem;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ---------- casa ---------- */
+.home-testa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+}
+
+.home-testa h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: -0.03em;
+}
+
+.vuoto h2 {
+  font-size: clamp(2rem, 9vw, 2.75rem);
+  font-weight: 750;
+  font-stretch: 90%;
+  margin-bottom: 0.9rem;
+}
+
+.vuoto p {
+  color: var(--tenue);
+  max-width: 34ch;
+}
+
+.tag {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.tag h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.tag dl {
+  margin: 0;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.tag dt {
+  color: var(--tenue);
+  font-size: 0.95rem;
+  margin-bottom: 0.45rem;
+}
+
+.tag dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.chip {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  font-size: 0.98rem;
+  font-weight: 550;
+}
+
+.piede {
+  margin-top: 3rem;
+  color: var(--tenue);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
