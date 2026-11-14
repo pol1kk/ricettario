@@ -49,7 +49,7 @@ jobs:
           # Foto di copertina: scarica quelle che mancano, toglie quelle non più usate.
           if [ -n "$SUPABASE_SECRET_KEY" ]; then
             docker run --rm -e PGURL="$SUPABASE_DB_URL" postgres:17 \
-              psql "$PGURL" -At -c "select name from storage.objects where bucket_id = 'copertine' order by name" > foto.txt
+              sh -c 'psql "$PGURL" -At -c "select name from storage.objects where bucket_id = '"'"'copertine'"'"' order by name"' > foto.txt
             mkdir -p dest/copertine
             while IFS= read -r nome; do
               [ -z "$nome" ] && continue
