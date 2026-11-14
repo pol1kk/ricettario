@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formattaMinuti, formattaQuantita, type Casa, type Ricetta, type Tag } from '../lib/dati';
+import { formattaMinuti, formattaQuantita, formattaValore, type Casa, type Ricetta, type Tag } from '../lib/dati';
 import Copertina from './Copertina';
 import ModificaRicetta from './ModificaRicetta';
 import { tornaAllElenco } from '../lib/rotta';
@@ -89,6 +89,16 @@ export default function SchedaRicetta({
     ['In tutto', formattaMinuti(ricetta.minuti_totali)],
   ].filter((t): t is [string, string] => t[1] !== null);
 
+  const valori: [string, number, string][] = [];
+  for (const [nome, valore, unita] of [
+    ['Calorie', ricetta.kcal, ''],
+    ['Proteine', ricetta.proteine_g, 'g'],
+    ['Carboidrati', ricetta.carboidrati_g, 'g'],
+    ['Grassi', ricetta.grassi_g, 'g'],
+  ] as const) {
+    if (valore !== null) valori.push([nome, valore, unita]);
+  }
+
   let numeroPassaggio = 0;
   const passaggi = ricetta.passaggi.map((p, i) => ({ ...p, i }));
 
@@ -133,6 +143,24 @@ export default function SchedaRicetta({
               </div>
             ))}
           </dl>
+        )}
+        {valori.length > 0 && (
+          <div className="valori">
+            <p>
+              Per porzione{ricetta.valori_fonte === 'stimati' ? ', valori stimati' : ''}
+            </p>
+            <dl>
+              {valori.map(([nome, valore, unita]) => (
+                <div key={nome}>
+                  <dt>{nome}</dt>
+                  <dd>
+                    {formattaValore(valore)}
+                    {unita && <small> {unita}</small>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         )}
       </header>
 

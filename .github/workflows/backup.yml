@@ -5,6 +5,8 @@ name: Backup settimanale del database
 # Richiede due secret del repository:
 #   SUPABASE_DB_URL  stringa di connessione "Session pooler" di Supabase, con la password
 #   BACKUP_TOKEN     token GitHub con permesso di scrittura su pol1kk/ricettario-backup
+# Facoltativo, per includere le foto di copertina:
+#   SUPABASE_SECRET_KEY  chiave segreta di Supabase (Settings -> API Keys -> Secret keys)
 
 on:
   schedule:
@@ -20,6 +22,8 @@ jobs:
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       BACKUP_TOKEN: ${{ secrets.BACKUP_TOKEN }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      SUPABASE_URL: https://kifgpxyikxpsdqhlookw.supabase.co
     steps:
       - name: Controlla la configurazione
         id: cfg
@@ -42,10 +46,30 @@ jobs:
         run: |
           git clone --depth 1 "https://x-access-token:${BACKUP_TOKEN}@github.com/pol1kk/ricettario-backup.git" dest
           mv ricettario.sql dest/ricettario.sql
+          # Foto di copertina: scarica quelle che mancano, toglie quelle non più usate.
+          if [ -n "$SUPABASE_SECRET_KEY" ]; then
+            docker run --rm -e PGURL="$SUPABASE_DB_URL" postgres:17 \
+              psql "$PGURL" -At -c "select name from storage.objects where bucket_id = 'copertine' order by name" > foto.txt
+            mkdir -p dest/copertine
+            while IFS= read -r nome; do
+              [ -z "$nome" ] && continue
+              [ -s "dest/copertine/$nome" ] && continue
+              mkdir -p "dest/copertine/$(dirname "$nome")"
+              curl -sSf -H "apikey: $SUPABASE_SECRET_KEY" -H "Authorization: Bearer $SUPABASE_SECRET_KEY" \
+                "$SUPABASE_URL/storage/v1/object/copertine/$nome" -o "dest/copertine/$nome" \
+                || { echo "::error::Foto non scaricata: $nome"; exit 1; }
+            done < foto.txt
+            (cd dest/copertine && find . -type f | sed 's#^\./##' | sort) > presenti.txt
+            sort foto.txt > attese.txt
+            comm -23 presenti.txt attese.txt | while IFS= read -r vecchia; do rm -f "dest/copertine/$vecchia"; done
+            echo "Foto nel backup: $(wc -l < attese.txt)"
+          else
+            echo "::warning::Foto di copertina non incluse: manca il secret SUPABASE_SECRET_KEY."
+          fi
           cd dest
           git config user.name "backup-ricettario"
           git config user.email "backup@users.noreply.github.com"
-          git add ricettario.sql
+          git add -A ricettario.sql copertine 2>/dev/null || git add ricettario.sql
           git diff --cached --quiet && { echo "Nessuna modifica dall'ultimo backup."; exit 0; }
           git commit -m "Backup $(date -u +%F)"
           git push origin HEAD:main

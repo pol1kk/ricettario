@@ -8,6 +8,18 @@ const decimale = (s: string) => {
   return s.trim() === '' || !Number.isFinite(v) || v <= 0 ? null : v;
 };
 
+const nonNegativo = (s: string) => {
+  const v = Number(s.replace(',', '.'));
+  return s.trim() === '' || !Number.isFinite(v) || v < 0 ? null : v;
+};
+
+const CAMPI_VALORI = [
+  ['kcal', 'Calorie', 'kcal'],
+  ['proteine_g', 'Proteine', 'g'],
+  ['carboidrati_g', 'Carboidrati', 'g'],
+  ['grassi_g', 'Grassi', 'g'],
+] as const;
+
 export default function ModificaRicetta({
   ricetta,
   tag,
@@ -27,6 +39,12 @@ export default function ModificaRicetta({
   const [quantita, setQuantita] = useState(() =>
     Object.fromEntries(ricetta.ingredienti.map((i) => [i.id, i.quantita?.toString().replace('.', ',') ?? ''])),
   );
+  const [valori, setValori] = useState(() => ({
+    kcal: ricetta.kcal?.toString().replace('.', ',') ?? '',
+    proteine_g: ricetta.proteine_g?.toString().replace('.', ',') ?? '',
+    carboidrati_g: ricetta.carboidrati_g?.toString().replace('.', ',') ?? '',
+    grassi_g: ricetta.grassi_g?.toString().replace('.', ',') ?? '',
+  }));
   const [verificata, setVerificata] = useState(false);
   const [attesa, setAttesa] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
@@ -46,6 +64,12 @@ export default function ModificaRicetta({
         minuti_cottura: intero(cottura),
         ...(verificata ? { da_verificare: false } : {}),
         tag: [...scelti],
+        valori: {
+          kcal: nonNegativo(valori.kcal),
+          proteine_g: nonNegativo(valori.proteine_g),
+          carboidrati_g: nonNegativo(valori.carboidrati_g),
+          grassi_g: nonNegativo(valori.grassi_g),
+        },
         quantita: ricetta.ingredienti.map((i) => ({ id: i.id, quantita: decimale(quantita[i.id] ?? '') })),
       },
     });
@@ -79,6 +103,25 @@ export default function ModificaRicetta({
             <label htmlFor="m-cottura">Cottura</label>
             <input id="m-cottura" inputMode="numeric" placeholder="min" value={cottura} onChange={(e) => setCottura(e.target.value)} />
           </div>
+        </div>
+
+        <h2>Valori nutrizionali</h2>
+        <p className="nota">Per una porzione. Lascia vuoto quello che non conosci.</p>
+        <div className="quattro-campi">
+          {CAMPI_VALORI.map(([campo, etichetta, unita]) => (
+            <div key={campo}>
+              <label htmlFor={`m-${campo}`}>{etichetta}</label>
+              <span className="campo-unita">
+                <input
+                  id={`m-${campo}`}
+                  inputMode="decimal"
+                  value={valori[campo]}
+                  onChange={(e) => setValori({ ...valori, [campo]: e.target.value })}
+                />
+                <span>{unita}</span>
+              </span>
+            </div>
+          ))}
         </div>
 
         <h2>Tag</h2>

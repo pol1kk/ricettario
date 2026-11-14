@@ -26,6 +26,12 @@ export type Ricetta = {
   note: string | null;
   da_verificare: boolean;
   note_verifica: string | null;
+  /** valori nutrizionali per porzione; null se il reel non li dichiara e non sono stati stimati */
+  kcal: number | null;
+  proteine_g: number | null;
+  carboidrati_g: number | null;
+  grassi_g: number | null;
+  valori_fonte: 'dichiarati' | 'stimati' | null;
   copertina_path: string | null;
   /** indirizzo temporaneo della foto, valido un giorno; null se non c'è foto */
   copertina_url: string | null;
@@ -59,6 +65,7 @@ export async function caricaDati(): Promise<Dati> {
       .select(
         `id, titolo, autore, reel_url, porzioni, minuti_preparazione, minuti_cottura, minuti_totali,
          passaggi, note, da_verificare, note_verifica, copertina_path,
+         kcal, proteine_g, carboidrati_g, grassi_g, valori_fonte,
          ricetta_tag ( tag_id ),
          ricetta_ingredienti ( id, quantita, unita, testo_originale, gruppo, facoltativo, posizione, ingredienti ( nome, icona ) )`,
       )
@@ -101,6 +108,11 @@ export async function caricaDati(): Promise<Dati> {
   });
 
   return { casa: (casa.data?.[0] as Casa | undefined) ?? null, tag: tutti, ricette: elenco };
+}
+
+/** "450", "20,5": al massimo un decimale, con la virgola */
+export function formattaValore(v: number): string {
+  return v.toLocaleString('it-IT', { maximumFractionDigits: v < 100 ? 1 : 0 });
 }
 
 /** "45 min", "2 h", "1 h 30 min" */
