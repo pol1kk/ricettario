@@ -52,7 +52,16 @@ export type Ingrediente = {
   reparto: string | null;
   ordine_reparto: number;
 };
-export type Dati = { casa: Casa | null; tag: Tag[]; ricette: Ricetta[]; ingredienti: Ingrediente[] };
+export type Reparto = { id: string; nome: string; ordine: number };
+export type Dati = {
+  casa: Casa | null;
+  tag: Tag[];
+  ricette: Ricetta[];
+  ingredienti: Ingrediente[];
+  reparti: Reparto[];
+  /** reparto scelto in passato per le voci scritte a mano nella lista: testo minuscolo -> id del reparto */
+  ricordate: Record<string, string>;
+};
 
 type RigaRicetta = Omit<Ricetta, 'tag' | 'ingredienti' | 'cerca' | 'copertina_url'> & {
   ricetta_tag: { tag_id: string }[];
@@ -68,7 +77,7 @@ const semplifica = (s: string) =>
 export { semplifica };
 
 export async function caricaDati(): Promise<Dati> {
-  const [casa, tag, ricette, catalogo] = await Promise.all([
+  const [casa, tag, ricette, catalogo, reparti, ricordate] = await Promise.all([
     supabase.from('case').select('id, nome, soglia_veloce_minuti, porzioni_predefinite').limit(1),
     supabase.from('tag').select('id, nome, gruppo, ordine, automatico').order('ordine'),
     supabase
@@ -83,8 +92,10 @@ export async function caricaDati(): Promise<Dati> {
       )
       .order('titolo'),
     supabase.from('ingredienti').select('id, nome, icona, tracciamento, reparti ( nome, ordine )').order('nome'),
+    supabase.from('reparti').select('id, nome, ordine').order('ordine'),
+    supabase.from('voci_ricordate').select('testo, reparto_id'),
   ]);
-  const errore = casa.error ?? tag.error ?? ricette.error ?? catalogo.error;
+  const errore = casa.error ?? tag.error ?? ricette.error ?? catalogo.error ?? reparti.error ?? ricordate.error;
   if (errore) throw new Error(errore.message);
 
   const tutti = (tag.data ?? []) as Tag[];
@@ -143,7 +154,14 @@ export async function caricaDati(): Promise<Dati> {
     }),
   );
 
-  return { casa: (casa.data?.[0] as Casa | undefined) ?? null, tag: tutti, ricette: elenco, ingredienti };
+  return {
+    casa: (casa.data?.[0] as Casa | undefined) ?? null,
+    tag: tutti,
+    ricette: elenco,
+    ingredienti,
+    reparti: (reparti.data ?? []) as Reparto[],
+    ricordate: Object.fromEntries((ricordate.data ?? []).map((r) => [r.testo as string, r.reparto_id as string])),
+  };
 }
 
 /** "450", "20,5": al massimo un decimale, con la virgola */

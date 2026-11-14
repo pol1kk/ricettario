@@ -6,7 +6,7 @@ import Porzioni from './Porzioni';
 
 type Aperto = 'menu' | 'cucinato' | null;
 
-/** "Aggiungi al menù" e "Ho cucinato", nella scheda della ricetta. */
+/** "Aggiungi al menù" e "L'ho cucinata", nella scheda della ricetta. */
 export default function AzioniRicetta({ ricetta, casa }: { ricetta: Ricetta; casa: Casa }) {
   const [aperto, setAperto] = useState<Aperto>(null);
   const [giorno, setGiorno] = useState(oggi());
@@ -57,7 +57,7 @@ export default function AzioniRicetta({ ricetta, casa }: { ricetta: Ricetta; cas
           Aggiungi al menù
         </button>
         <button className="contorno" aria-expanded={aperto === 'cucinato'} onClick={() => apri('cucinato')}>
-          Ho cucinato
+          L'ho cucinata
         </button>
       </div>
 

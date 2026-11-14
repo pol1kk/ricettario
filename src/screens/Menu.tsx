@@ -292,7 +292,7 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
                                         fai(() => modificaPiano(v.id, { cucinata_il: v.cucinata_il ? null : new Date().toISOString() }))
                                       }
                                     >
-                                      {v.cucinata_il ? 'Non l’ho cucinata' : 'Ho cucinato'}
+                                      {v.cucinata_il ? 'Non l’ho cucinata' : 'L’ho cucinata'}
                                     </button>
                                   )}
                                   <button className="contorno rosso" disabled={attesa} onClick={() => fai(() => togliDalPiano(v.id))}>

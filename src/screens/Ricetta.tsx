@@ -90,14 +90,14 @@ export default function SchedaRicetta({
     ['In tutto', formattaMinuti(ricetta.minuti_totali)],
   ].filter((t): t is [string, string] => t[1] !== null);
 
-  const valori: [string, number, string][] = [];
-  for (const [nome, valore, unita] of [
-    ['Calorie', ricetta.kcal, ''],
-    ['Proteine', ricetta.proteine_g, 'g'],
-    ['Carboidrati', ricetta.carboidrati_g, 'g'],
-    ['Grassi', ricetta.grassi_g, 'g'],
+  const valori: [string, number, string, string][] = [];
+  for (const [nome, valore, unita, chiave] of [
+    ['Calorie', ricetta.kcal, '', 'kcal'],
+    ['Proteine', ricetta.proteine_g, 'g', 'proteine_g'],
+    ['Carboidrati', ricetta.carboidrati_g, 'g', 'carboidrati_g'],
+    ['Grassi', ricetta.grassi_g, 'g', 'grassi_g'],
   ] as const) {
-    if (valore !== null) valori.push([nome, valore, unita]);
+    if (valore !== null) valori.push([nome, valore, unita, chiave]);
   }
 
   let numeroPassaggio = 0;
@@ -151,8 +151,8 @@ export default function SchedaRicetta({
               Per porzione{ricetta.valori_fonte === 'stimati' ? ', valori stimati' : ''}
             </p>
             <dl>
-              {valori.map(([nome, valore, unita]) => (
-                <div key={nome}>
+              {valori.map(([nome, valore, unita, chiave]) => (
+                <div key={nome} data-macro={chiave}>
                   <dt>{nome}</dt>
                   <dd>
                     {formattaValore(valore)}

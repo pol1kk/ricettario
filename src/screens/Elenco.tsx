@@ -178,7 +178,7 @@ export default function Elenco({
                     ['grassiMax', 'Grassi, al massimo', 'g'],
                   ] as const
                 ).map(([campo, etichetta, unita]) => (
-                  <div key={campo}>
+                  <div key={campo} data-macro={campo === 'kcalMax' ? 'kcal' : `${campo.replace(/Max|Min/, '')}_g`}>
                     <label htmlFor={`v-${campo}`}>{etichetta}</label>
                     <span className="campo-unita">
                       <input

@@ -1833,3 +1833,90 @@ button.togli:hover {
   min-width: 4.9rem;
   font-size: 0.92rem;
 }
+
+/* ---------- colori dei macronutrienti: tenui, per distinguerli a colpo d'occhio ---------- */
+:root {
+  --proteine: #3f74b8;
+  --carboidrati: #c9a019;
+  --grassi: #4c9a63;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --proteine: #7fb0ea;
+    --carboidrati: #e3c257;
+    --grassi: #7fcb95;
+  }
+}
+
+.valori dl > div[data-macro='proteine_g'] {
+  --tinta: var(--proteine);
+}
+.valori dl > div[data-macro='carboidrati_g'] {
+  --tinta: var(--carboidrati);
+}
+.valori dl > div[data-macro='grassi_g'] {
+  --tinta: var(--grassi);
+}
+
+.valori dl > div[data-macro$='_g'] {
+  background: color-mix(in srgb, var(--tinta) 11%, var(--superficie));
+  border-color: color-mix(in srgb, var(--tinta) 38%, var(--linea));
+}
+
+.valori dl > div[data-macro$='_g'] dt {
+  color: color-mix(in srgb, var(--tinta) 62%, var(--inchiostro));
+  font-weight: 600;
+}
+
+/* nei moduli basta un pallino accanto all'etichetta */
+.soglie [data-macro$='_g'] > label::before,
+.quattro-campi [data-macro$='_g'] > label::before {
+  content: '';
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: var(--tinta);
+}
+.soglie [data-macro='proteine_g'],
+.quattro-campi [data-macro='proteine_g'] {
+  --tinta: var(--proteine);
+}
+.soglie [data-macro='carboidrati_g'],
+.quattro-campi [data-macro='carboidrati_g'] {
+  --tinta: var(--carboidrati);
+}
+.soglie [data-macro='grassi_g'],
+.quattro-campi [data-macro='grassi_g'] {
+  --tinta: var(--grassi);
+}
+
+/* ---------- reparto delle voci scritte a mano ---------- */
+.reparto li {
+  flex-wrap: wrap;
+}
+
+button.cambia-reparto {
+  margin-right: 0;
+}
+
+button.cambia-reparto:hover,
+button.cambia-reparto[aria-expanded='true'] {
+  color: var(--basilico);
+}
+
+.scegli-reparto {
+  flex-basis: 100%;
+  padding: 0 0 0.9rem;
+  animation: entra 0.18s ease both;
+}
+
+.scegli-reparto label {
+  font-size: 0.92rem;
+}
+
+.aggiungi-voce > label[for='reparto-voce'] {
+  margin-top: 0.25rem;
+}

@@ -109,7 +109,7 @@ export default function ModificaRicetta({
         <p className="nota">Per una porzione. Lascia vuoto quello che non conosci.</p>
         <div className="quattro-campi">
           {CAMPI_VALORI.map(([campo, etichetta, unita]) => (
-            <div key={campo}>
+            <div key={campo} data-macro={campo}>
               <label htmlFor={`m-${campo}`}>{etichetta}</label>
               <span className="campo-unita">
                 <input

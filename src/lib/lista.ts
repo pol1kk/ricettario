@@ -12,6 +12,8 @@ export type Voce = {
   id: string;
   ingrediente_id: string | null;
   testo: string | null;
+  /** reparto scelto a mano, per le voci senza ingrediente; assente nelle copie locali più vecchie */
+  reparto_id?: string | null;
   quantita: number | null;
   unita: Unita | null;
   spuntata: boolean;
@@ -20,6 +22,7 @@ export type Voce = {
 
 type Operazione =
   | { tipo: 'spunta'; id: string; spuntata: boolean; quando: string }
+  | { tipo: 'sposta'; id: string; reparto_id: string }
   | { tipo: 'aggiungi'; voce: Voce };
 
 type Stato = {
@@ -33,13 +36,15 @@ type Stato = {
   visibili: Voce[];
 };
 
-const CAMPI = 'id, ingrediente_id, testo, quantita, unita, spuntata, origine';
+const CAMPI = 'id, ingrediente_id, testo, reparto_id, quantita, unita, spuntata, origine';
 
 function applica(voci: Voce[], coda: Operazione[]): Voce[] {
   let risultato = voci;
   for (const op of coda) {
     if (op.tipo === 'spunta') {
       risultato = risultato.map((v) => (v.id === op.id ? { ...v, spuntata: op.spuntata } : v));
+    } else if (op.tipo === 'sposta') {
+      risultato = risultato.map((v) => (v.id === op.id ? { ...v, reparto_id: op.reparto_id } : v));
     } else if (!risultato.some((v) => v.id === op.voce.id)) {
       risultato = [...risultato, op.voce];
     }
@@ -84,12 +89,15 @@ async function esegui(): Promise<void> {
             .from('lista_spesa')
             .update({ spuntata: op.spuntata, spuntata_il: op.spuntata ? op.quando : null })
             .eq('id', op.id)
-        : await supabase.from('lista_spesa').upsert(
+        : op.tipo === 'sposta'
+          ? await supabase.from('lista_spesa').update({ reparto_id: op.reparto_id }).eq('id', op.id)
+          : await supabase.from('lista_spesa').upsert(
             {
               id: op.voce.id,
               casa_id: casa,
               ingrediente_id: op.voce.ingrediente_id,
               testo: op.voce.testo,
+              reparto_id: op.voce.reparto_id ?? null,
               spuntata: op.voce.spuntata,
               origine: 'manuale',
             },
@@ -123,11 +131,17 @@ export function spunta(id: string, spuntata: boolean) {
   void sincronizza();
 }
 
-export function aggiungi(testo: string | null, ingredienteId: string | null) {
+export function sposta(id: string, repartoId: string) {
+  imposta({ coda: [...stato.coda, { tipo: 'sposta', id, reparto_id: repartoId }] });
+  void sincronizza();
+}
+
+export function aggiungi(testo: string | null, ingredienteId: string | null, repartoId: string | null = null) {
   const voce: Voce = {
     id: crypto.randomUUID(),
     ingrediente_id: ingredienteId,
     testo: ingredienteId ? null : testo,
+    reparto_id: ingredienteId ? null : repartoId,
     quantita: null,
     unita: null,
     spuntata: false,
