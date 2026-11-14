@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formattaMinuti, formattaQuantita, formattaValore, type Casa, type Ricetta, type Tag } from '../lib/dati';
 import Copertina from './Copertina';
+import AzioniRicetta from './AzioniRicetta';
 import ModificaRicetta from './ModificaRicetta';
 import { tornaAllElenco } from '../lib/rotta';
 
@@ -26,7 +27,7 @@ function Indietro() {
       <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
         <path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      Ricette
+      Indietro
     </button>
   );
 }
@@ -163,6 +164,8 @@ export default function SchedaRicetta({
           </div>
         )}
       </header>
+
+      <AzioniRicetta ricetta={ricetta} casa={casa} />
 
       {ricetta.da_verificare && (
         <p className="verifica">

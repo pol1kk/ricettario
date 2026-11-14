@@ -1280,3 +1280,556 @@ legend {
 .quattro-campi .campo-unita span {
   width: 2rem;
 }
+
+/* ================= fase 2: barra, menù, lista ================= */
+
+/* ---------- barra in basso ---------- */
+.con-barra main {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 6.5rem);
+}
+
+.barra-basso {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 0.35rem max(0.5rem, env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 0.35rem);
+  background: color-mix(in srgb, var(--carta) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1.5px solid var(--linea);
+  view-transition-name: barra;
+}
+
+.barra-basso a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.4rem 0;
+  border-radius: var(--raggio);
+  color: var(--tenue);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.barra-basso a[aria-current='page'] {
+  color: var(--basilico);
+}
+
+@keyframes dissolvi-esce {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes dissolvi-entra {
+  from {
+    opacity: 0;
+  }
+}
+[data-direzione='scheda']::view-transition-old(root) {
+  animation: 0.1s ease both dissolvi-esce;
+}
+[data-direzione='scheda']::view-transition-new(root) {
+  animation: 0.18s ease 0.04s both dissolvi-entra;
+}
+
+.stato-rete {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--raggio);
+  background: color-mix(in srgb, var(--limone) 30%, var(--carta));
+  font-size: 0.95rem;
+}
+
+.stato-rete.in-cima {
+  max-width: 31.5rem;
+  margin: calc(env(safe-area-inset-top) + 0.75rem) auto -0.75rem;
+  width: calc(100% - 2.5rem);
+}
+
+.riga-porzioni {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+/* ---------- azioni nella scheda ricetta ---------- */
+.azioni-ricetta {
+  margin-top: 1.25rem;
+}
+
+.coppia {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.coppia button {
+  min-height: 3rem;
+  padding: 0.5rem;
+  font-size: 0.98rem;
+}
+
+.coppia button[aria-expanded='true'] {
+  border-color: var(--basilico);
+  background: color-mix(in srgb, var(--basilico) 8%, transparent);
+}
+
+.azioni-ricetta .scheda {
+  margin-top: 0.75rem;
+}
+
+.azioni-ricetta .fatto,
+.azioni-ricetta .errore {
+  margin-top: 0.75rem;
+}
+
+.scheda .riga-porzioni {
+  margin-top: 0.4rem;
+}
+
+/* ---------- menù ---------- */
+.menu .home-testa {
+  margin-bottom: 1rem;
+  min-height: 2.75rem;
+}
+
+.menu .home-testa .secondario {
+  margin-right: -0.75rem;
+}
+
+.settimana {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.settimana p {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+button.tondo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  color: var(--basilico);
+}
+
+button.tondo:hover {
+  background: color-mix(in srgb, var(--basilico) 10%, var(--superficie));
+}
+
+.giorno {
+  padding: 1.1rem 0 0.9rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.settimana + .giorno,
+.errore + .giorno {
+  margin-top: 1rem;
+}
+
+.giorno h2 {
+  font-size: 1.2rem;
+  font-weight: 750;
+  margin-bottom: 0.5rem;
+}
+
+.giorno h2 span {
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--limone);
+  color: #1c2621;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  vertical-align: 0.15em;
+}
+
+.pasto {
+  display: grid;
+  grid-template-columns: 5.4rem 1fr;
+  align-items: start;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+}
+
+.pasto h3 {
+  padding-top: 0.75rem;
+  color: var(--tenue);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.pasto-voci {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.pasto-voce {
+  width: 100%;
+}
+
+button.riga-voce {
+  display: block;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+
+button.riga-voce:hover {
+  background: var(--superficie);
+  border-color: var(--basilico);
+}
+
+button.riga-voce[aria-expanded='true'] {
+  border-color: var(--basilico);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.riga-voce .titolo {
+  display: block;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.riga-voce .dettagli {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--tenue);
+  font-size: 0.88rem;
+}
+
+.riga-voce[data-cucinata='true'] .titolo {
+  color: var(--tenue);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.pannello-voce {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--basilico);
+  border-top: 0;
+  border-radius: 0 0 var(--raggio) var(--raggio);
+  animation: entra 0.18s ease both;
+}
+
+.comandi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.comandi button {
+  width: auto;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+button.aggiungi-pasto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: auto;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.8rem;
+  background: transparent;
+  border: 1.5px dashed var(--linea);
+  color: var(--basilico);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+button.aggiungi-pasto:hover {
+  background: color-mix(in srgb, var(--basilico) 8%, transparent);
+  border-color: var(--basilico);
+}
+
+.genera {
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.genera .nota {
+  margin-top: 0.75rem;
+}
+
+/* ---------- scelta del pasto ---------- */
+.scegli-pasto .riga-porzioni {
+  margin: 1.25rem 0;
+}
+
+.scegli-pasto .ricette {
+  margin-top: 1rem;
+}
+
+.ricette.scelta button {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 0;
+  padding: 0.8rem 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+
+.ricette.scelta button:hover {
+  background: transparent;
+}
+
+.ricette.scelta button:hover .titolo {
+  color: var(--basilico);
+}
+
+.ricette.scelta .miniatura {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.6rem;
+}
+
+.ricette.scelta .titolo {
+  font-size: 1.08rem;
+}
+
+.nota-libera,
+.aggiungi-voce {
+  margin-top: 2rem;
+}
+
+.riga input {
+  min-width: 0;
+}
+
+/* ---------- lista della spesa ---------- */
+.lista .home-testa {
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.lista .home-testa h1 {
+  line-height: 1.1;
+}
+
+button.interruttore {
+  flex: none;
+  width: auto;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  color: var(--inchiostro);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+button.interruttore:hover {
+  background: var(--superficie);
+  border-color: var(--basilico);
+}
+
+button.interruttore[aria-pressed='true'] {
+  background: var(--basilico);
+  border-color: var(--basilico);
+  color: var(--su-basilico);
+}
+
+.lista .conteggio {
+  margin-top: 0;
+  min-height: 0;
+}
+
+.reparto h2 {
+  margin: 1.5rem 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--basilico);
+}
+
+.reparto ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.reparto li {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--linea);
+}
+
+button.voce {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  min-height: 3.25rem;
+  padding: 0.5rem 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+
+button.voce:hover {
+  background: transparent;
+}
+
+button.voce:active {
+  transform: none;
+}
+
+.casella {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid var(--tenue);
+  border-radius: 8px;
+  color: transparent;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.voce[aria-pressed='true'] .casella {
+  background: var(--basilico);
+  border-color: var(--basilico);
+  color: var(--su-basilico);
+}
+
+.voce .cosa {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.voce .quanto {
+  width: auto;
+  color: var(--tenue);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+button.togli {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  margin-right: -0.6rem;
+  padding: 0;
+  background: transparent;
+  color: var(--tenue);
+}
+
+button.togli:hover {
+  background: transparent;
+  color: var(--pomodoro);
+}
+
+.carrello {
+  margin-top: 1rem;
+}
+
+.carrello h2 {
+  color: var(--tenue);
+}
+
+.carrello > .contorno {
+  margin-top: 1rem;
+}
+
+.in-spesa button.voce {
+  min-height: 4rem;
+  gap: 0.9rem;
+  font-size: 1.2rem;
+}
+
+.in-spesa .casella {
+  width: 2rem;
+  height: 2rem;
+}
+
+.in-spesa .icona {
+  font-size: 1.45rem;
+  width: 1.8rem;
+}
+
+.di-base {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.di-base h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.proposte {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.9rem 0 0.4rem;
+}
+
+.di-base > .secondario {
+  margin-left: -0.75rem;
+}
+
+.vai-menu {
+  margin-top: 1.25rem;
+}
+
+.pannello-voce .riga-porzioni {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pannello-voce .porzioni button {
+  width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+.pannello-voce .porzioni output {
+  min-width: 4.9rem;
+  font-size: 0.92rem;
+}

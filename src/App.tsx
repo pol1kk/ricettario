@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
-import { caricaDati, type Dati } from './lib/dati';
-import { usaRotta } from './lib/rotta';
+import { caricaDati, leggiCache, scriviCache, type Dati } from './lib/dati';
+import { lunedi, oggi } from './lib/date';
+import { PRINCIPALI, usaRotta } from './lib/rotta';
 import Login from './screens/Login';
 import Elenco, { FILTRI_VUOTI, type Filtri } from './screens/Elenco';
 import SchedaRicetta from './screens/Ricetta';
 import Impostazioni from './screens/Impostazioni';
 import GestioneTag from './screens/GestioneTag';
+import Menu from './screens/Menu';
+import Lista from './screens/Lista';
+import Barra from './screens/Barra';
 
 type Stato = { tipo: 'carico' } | { tipo: 'errore'; messaggio: string } | { tipo: 'pronto'; dati: Dati };
 
@@ -27,32 +31,44 @@ export default function App() {
 
 function Dentro({ session }: { session: Session }) {
   const rotta = usaRotta();
-  const [stato, setStato] = useState<Stato>({ tipo: 'carico' });
+  // Si parte dalla copia salvata sul telefono, se c'è: l'app si apre subito e funziona anche senza rete.
+  const [stato, setStato] = useState<Stato>(() => {
+    const copia = leggiCache<{ utente: string; dati: Dati }>('dati');
+    return copia && copia.utente === session.user.id ? { tipo: 'pronto', dati: copia.dati } : { tipo: 'carico' };
+  });
+  const [nonAggiornati, setNonAggiornati] = useState(false);
   const [filtri, setFiltri] = useState<Filtri>(FILTRI_VUOTI);
+  const [settimana, setSettimana] = useState(() => lunedi(oggi()));
   const utente = session.user.id;
 
-  const carica = useCallback(() => {
-    setStato({ tipo: 'carico' });
-    caricaDati().then(
-      (dati) => setStato({ tipo: 'pronto', dati }),
-      (e: Error) => setStato({ tipo: 'errore', messaggio: e.message }),
-    );
-  }, []);
-
-  useEffect(carica, [carica, utente]);
-
-  // dopo una modifica: rilegge i dati senza far sparire la schermata
+  // Rilegge i dati. Se non riesce e c'è già qualcosa a schermo, lo lascia e segnala che non è aggiornato.
   const ricarica = useCallback(
     () =>
       caricaDati().then(
-        (dati) => setStato({ tipo: 'pronto', dati }),
-        (e: Error) => setStato({ tipo: 'errore', messaggio: e.message }),
+        (dati) => {
+          setStato({ tipo: 'pronto', dati });
+          setNonAggiornati(false);
+          scriviCache('dati', { utente, dati });
+        },
+        (e: Error) => {
+          setStato((prima) => (prima.tipo === 'pronto' ? prima : { tipo: 'errore', messaggio: e.message }));
+          setNonAggiornati(true);
+        },
       ),
-    [],
+    [utente],
   );
 
+  useEffect(() => {
+    void ricarica();
+    const riprova = () => void ricarica();
+    window.addEventListener('online', riprova);
+    return () => window.removeEventListener('online', riprova);
+  }, [ricarica]);
+
+  const casa = stato.tipo === 'pronto' ? (stato.dati.casa ?? undefined) : undefined;
+
   if (rotta.vista === 'impostazioni') {
-    return <Impostazioni email={session.user.email ?? ''} casa={stato.tipo === 'pronto' ? (stato.dati.casa ?? undefined) : undefined} />;
+    return <Impostazioni email={session.user.email ?? ''} casa={casa} />;
   }
 
   if (stato.tipo === 'carico') {
@@ -69,7 +85,13 @@ function Dentro({ session }: { session: Session }) {
         <p role="alert" className="errore">
           Non riesco a leggere i dati: {stato.messaggio}. Controlla la connessione.
         </p>
-        <button className="riprova" onClick={carica}>
+        <button
+          className="riprova"
+          onClick={() => {
+            setStato({ tipo: 'carico' });
+            void ricarica();
+          }}
+        >
           Riprova
         </button>
       </main>
@@ -111,5 +133,21 @@ function Dentro({ session }: { session: Session }) {
     return <GestioneTag dati={dati} casa={dati.casa} ricarica={ricarica} />;
   }
 
-  return <Elenco dati={dati} filtri={filtri} setFiltri={setFiltri} />;
+  return (
+    <div className={PRINCIPALI.includes(rotta.vista) ? 'con-barra' : undefined}>
+      {nonAggiornati && rotta.vista === 'elenco' && (
+        <p className="stato-rete in-cima" role="status">
+          Senza connessione: vedi le ricette salvate l'ultima volta.
+        </p>
+      )}
+      {rotta.vista === 'menu' ? (
+        <Menu dati={dati} casa={dati.casa} settimana={settimana} setSettimana={setSettimana} />
+      ) : rotta.vista === 'lista' ? (
+        <Lista dati={dati} casa={dati.casa} />
+      ) : (
+        <Elenco dati={dati} filtri={filtri} setFiltri={setFiltri} />
+      )}
+      <Barra vista={rotta.vista} />
+    </div>
+  );
 }
