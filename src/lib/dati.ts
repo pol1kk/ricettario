@@ -51,6 +51,14 @@ export type Ingrediente = {
   base: boolean;
   reparto: string | null;
   ordine_reparto: number;
+  unita_base: Unita;
+  /** valori per 100 g (o per 100 ml se l'unità base è ml); null se non noti */
+  kcal_100: number | null;
+  proteine_100: number | null;
+  carboidrati_100: number | null;
+  grassi_100: number | null;
+  /** peso medio di un pezzo, per gli ingredienti contati a unità */
+  grammi_per_unita: number | null;
 };
 export type Reparto = { id: string; nome: string; ordine: number };
 export type Dati = {
@@ -91,7 +99,7 @@ export async function caricaDati(): Promise<Dati> {
                                ingredienti ( nome, icona, tracciamento ) )`,
       )
       .order('titolo'),
-    supabase.from('ingredienti').select('id, nome, icona, tracciamento, reparti ( nome, ordine )').order('nome'),
+    supabase.from('ingredienti').select('id, nome, icona, tracciamento, unita_base, kcal_100, proteine_100, carboidrati_100, grassi_100, grammi_per_unita, reparti ( nome, ordine )').order('nome'),
     supabase.from('reparti').select('id, nome, ordine').order('ordine'),
     supabase.from('voci_ricordate').select('testo, reparto_id'),
   ]);
@@ -141,6 +149,12 @@ export async function caricaDati(): Promise<Dati> {
     nome: string;
     icona: string | null;
     tracciamento: 'quantita' | 'stato';
+    unita_base: Unita;
+    kcal_100: number | null;
+    proteine_100: number | null;
+    carboidrati_100: number | null;
+    grassi_100: number | null;
+    grammi_per_unita: number | null;
     reparti: { nome: string; ordine: number } | null;
   };
   const ingredienti = ((catalogo.data ?? []) as unknown as RigaIngrediente[]).map(
@@ -151,6 +165,12 @@ export async function caricaDati(): Promise<Dati> {
       base: i.tracciamento === 'stato',
       reparto: i.reparti?.nome ?? null,
       ordine_reparto: i.reparti?.ordine ?? 999,
+      unita_base: i.unita_base,
+      kcal_100: i.kcal_100,
+      proteine_100: i.proteine_100,
+      carboidrati_100: i.carboidrati_100,
+      grassi_100: i.grassi_100,
+      grammi_per_unita: i.grammi_per_unita,
     }),
   );
 

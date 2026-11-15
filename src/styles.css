@@ -1293,7 +1293,7 @@ legend {
   inset: auto 0 0 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   padding: 0.35rem max(0.5rem, env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 0.35rem);
   background: color-mix(in srgb, var(--carta) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -2131,4 +2131,407 @@ a.reel {
 
 .foto-finale .nota {
   margin-bottom: 0.6rem;
+}
+
+/* ================= diario alimentare ================= */
+
+.diario .home-testa {
+  margin-bottom: 1rem;
+  min-height: 2.75rem;
+}
+
+.diario .home-testa .secondario {
+  margin-right: -0.75rem;
+}
+
+.diario .settimana p {
+  text-align: center;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.sotto-data {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.sotto-data .viste {
+  margin-bottom: 0;
+}
+
+.viste.due {
+  grid-template-columns: repeat(2, 1fr);
+  width: fit-content;
+}
+
+.viste.due button {
+  padding-inline: 1rem;
+}
+
+.viste.quattro {
+  grid-template-columns: repeat(4, auto);
+}
+
+/* ---------- riepilogo del giorno ---------- */
+.riepilogo {
+  padding: 1.1rem 1.1rem 1.2rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: calc(var(--raggio) + 4px);
+}
+
+.riepilogo .calorie {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.1rem 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.riepilogo .grande {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--tenue);
+}
+
+.riepilogo .grande strong {
+  color: var(--inchiostro);
+  font-size: 2.6rem;
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.riepilogo .resto {
+  color: var(--tenue);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.misura {
+  display: block;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tinta, var(--basilico)) 16%, var(--carta));
+  overflow: hidden;
+}
+
+.misura > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--tinta, var(--basilico));
+  transition: width 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* oltre l'obiettivo la barra resta piena e prende un bordo, senza allarmi */
+.misura[data-oltre='true'] {
+  outline: 1.5px solid var(--tinta, var(--basilico));
+  outline-offset: 1.5px;
+}
+
+.riepilogo .macro {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+  margin: 1.1rem 0 0;
+}
+
+.riepilogo .macro > div {
+  min-width: 0;
+}
+
+.macro [data-macro='proteine_g'] {
+  --tinta: var(--proteine);
+}
+.macro [data-macro='carboidrati_g'] {
+  --tinta: var(--carboidrati);
+}
+.macro [data-macro='grassi_g'] {
+  --tinta: var(--grassi);
+}
+
+.riepilogo .macro dt {
+  color: color-mix(in srgb, var(--tinta) 62%, var(--inchiostro));
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.riepilogo .macro dd {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.riepilogo .macro dd span {
+  color: var(--tenue);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.riepilogo .macro .misura {
+  height: 0.35rem;
+}
+
+button.invito-obiettivi {
+  display: block;
+  margin: 0.4rem auto 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* ---------- sintesi dei valori di una voce ---------- */
+.sintesi {
+  font-variant-numeric: tabular-nums;
+}
+
+.sintesi > span + span::before {
+  content: ', ';
+  color: var(--tenue);
+  font-weight: 400;
+}
+
+.sintesi [data-macro='proteine_g'] {
+  color: color-mix(in srgb, var(--proteine) 70%, var(--inchiostro));
+}
+.sintesi [data-macro='carboidrati_g'] {
+  color: color-mix(in srgb, var(--carboidrati) 70%, var(--inchiostro));
+}
+.sintesi [data-macro='grassi_g'] {
+  color: color-mix(in srgb, var(--grassi) 70%, var(--inchiostro));
+}
+
+/* ---------- pasti del giorno ---------- */
+.pasto-diario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 1.1rem 0 1rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.riepilogo + .pasto-diario,
+.invito-obiettivi + .pasto-diario {
+  margin-top: 1.25rem;
+}
+
+.pasto-diario > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 0.2rem;
+}
+
+.pasto-diario h2 {
+  font-size: 1.15rem;
+  font-weight: 750;
+}
+
+.pasto-diario .subtotale {
+  color: var(--tenue);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pannello-voce label {
+  font-size: 0.92rem;
+  margin-bottom: 0.3rem;
+}
+
+.pannello-voce > div > .campo-unita input,
+.aggiungi-diario .modulo > .campo-unita input {
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+
+.pannello-voce > div > .campo-unita span,
+.aggiungi-diario .modulo > .campo-unita span {
+  width: auto;
+  min-width: 3rem;
+}
+
+.anteprima {
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.anteprima.grande {
+  padding: 0.85rem 1rem;
+  border-radius: var(--raggio);
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  font-size: 1.05rem;
+}
+
+/* voce del menù non ancora confermata: tratteggiata, come qualcosa di previsto e non ancora avvenuto */
+.proposta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.6rem 0.6rem 0.85rem;
+  border: 1.5px dashed color-mix(in srgb, var(--basilico) 45%, var(--linea));
+  border-radius: var(--raggio);
+}
+
+.proposta .testi {
+  min-width: 0;
+}
+
+.proposta .titolo {
+  display: block;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.proposta .dettagli {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--tenue);
+  font-size: 0.88rem;
+}
+
+.proposta button {
+  flex: none;
+  width: auto;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--superficie);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+/* ---------- settimana ---------- */
+.giorni-settimana {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  border-top: 1.5px solid var(--linea);
+}
+
+.giorni-settimana li {
+  border-bottom: 1.5px solid var(--linea);
+}
+
+.giorni-settimana button {
+  display: grid;
+  grid-template-columns: 4rem 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 0;
+  padding: 0.85rem 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+
+.giorni-settimana button:hover {
+  background: transparent;
+}
+
+.giorni-settimana button:hover .nome {
+  color: var(--basilico);
+}
+
+.giorni-settimana .nome {
+  font-weight: 700;
+}
+
+.giorni-settimana [data-oggi='true'] .nome {
+  color: var(--basilico);
+}
+
+.giorni-settimana .barra-giorno {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--tenue);
+}
+
+.giorni-settimana .meta {
+  color: var(--tenue);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- aggiunta al diario ---------- */
+.aggiungi-diario .viste {
+  margin: 1.25rem 0 1rem;
+}
+
+.aggiungi-diario .ricette {
+  margin-top: 1rem;
+}
+
+.aggiungi-diario .modulo .viste {
+  margin: 0 0 0.25rem;
+}
+
+.ricette.semplice .titolo {
+  font-size: 1.08rem;
+}
+
+.icona-alimento {
+  flex: none;
+  width: 2rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+/* ---------- obiettivi ---------- */
+.spunta.interruttore {
+  margin: 0.5rem 0 1.25rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: var(--raggio);
+  font-weight: 600;
+}
+
+.obiettivi-giorni {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.obiettivi-giorni .riga-voce {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.obiettivi-giorni .riga-voce .dettagli {
+  margin-top: 0;
+  text-align: right;
+}
+
+button.salva-obiettivi {
+  margin-top: 1.5rem;
+}
+
+.finale-diario {
+  margin: 1.25rem 0 0.75rem;
+}
+
+.aggiungi-diario .modulo {
+  margin-top: 1.25rem;
 }

@@ -2,18 +2,20 @@ import { useSyncExternalStore } from 'react';
 import { flushSync } from 'react-dom';
 
 export type Rotta =
+  | { vista: 'diario' }
   | { vista: 'elenco' }
   | { vista: 'menu' }
   | { vista: 'lista' }
   | { vista: 'ricetta'; id: string }
   | { vista: 'cucina'; id: string }
+  | { vista: 'obiettivi' }
   | { vista: 'impostazioni' }
   | { vista: 'tag' };
 
 export type Vista = Rotta['vista'];
 
-/** Le tre schermate della barra in basso; le altre si aprono "sopra" e hanno il tasto indietro. */
-export const PRINCIPALI: Vista[] = ['elenco', 'menu', 'lista'];
+/** Le schermate della barra in basso; le altre si aprono "sopra" e hanno il tasto indietro. */
+export const PRINCIPALI: Vista[] = ['diario', 'menu', 'lista', 'elenco'];
 
 function leggi(hash: string): Rotta {
   const m = hash.match(/^#\/ricetta\/([0-9a-f-]{36})$/);
@@ -24,7 +26,9 @@ function leggi(hash: string): Rotta {
   if (hash === '#/lista') return { vista: 'lista' };
   if (hash === '#/impostazioni') return { vista: 'impostazioni' };
   if (hash === '#/tag') return { vista: 'tag' };
-  return { vista: 'elenco' }; // comprende anche i frammenti del link di accesso via email
+  if (hash === '#/obiettivi') return { vista: 'obiettivi' };
+  if (hash === '#/ricette') return { vista: 'elenco' };
+  return { vista: 'diario' }; // l'app si apre sul diario; comprende anche i frammenti del link di accesso via email
 }
 
 const ascoltatori = new Set<() => void>();
@@ -71,8 +75,14 @@ export function vaiAScheda(percorso: string) {
   aggiorna();
 }
 
-/** Torna alla schermata da cui si è arrivati; se non c'è (pagina aperta da un link), all'elenco. */
+/** Torna alla schermata da cui si è arrivati; se non c'è (pagina aperta da un link), all'elenco delle ricette. */
 export function tornaAllElenco() {
+  if (window.history.length > 1 && !PRINCIPALI.includes(vistaCorrente)) window.history.back();
+  else vai('/ricette');
+}
+
+/** Come sopra, per le schermate aperte dal diario. */
+export function tornaAlDiario() {
   if (window.history.length > 1 && !PRINCIPALI.includes(vistaCorrente)) window.history.back();
   else vai('/');
 }

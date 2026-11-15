@@ -27,14 +27,14 @@ function ScegliPasto({
   const [porzioni, setPorzioni] = useState(casa.porzioni_predefinite);
   const [attesa, setAttesa] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
-  const nomePasto = PASTI.find((p) => p.valore === pasto)!.nome;
+  const { nome: nomePasto, tag: tagPasto } = PASTI.find((p) => p.valore === pasto)!;
 
   const ricette = useMemo(() => {
     const parole = semplifica(testo).split(/\s+/).filter(Boolean);
-    // prima le ricette che hanno un tag con il nome del pasto (per esempio "colazione")
-    const adatta = (r: Ricetta) => (r.tag.some((t) => t.nome === pasto) ? 0 : 1);
+    // prima le ricette con il tag adatto al pasto ("colazione", oppure "snack" per le merende)
+    const adatta = (r: Ricetta) => (r.tag.some((t) => t.nome === tagPasto) ? 0 : 1);
     return dati.ricette.filter((r) => parole.every((p) => r.cerca.includes(p))).sort((a, b) => adatta(a) - adatta(b));
-  }, [dati.ricette, testo, pasto]);
+  }, [dati.ricette, testo, tagPasto]);
 
   async function aggiungi(voce: { ricetta_id?: string; nota?: string }) {
     setAttesa(true);
@@ -250,7 +250,7 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
                 const delPasto = voci.filter((v) => v.data === giorno && v.pasto === p.valore);
                 return (
                   <div key={p.valore} className="pasto">
-                    <h3>{p.nome}</h3>
+                    <h3>{p.breve}</h3>
                     <div className="pasto-voci">
                       {delPasto.map((v) => {
                         const ricetta = v.ricetta_id ? perId.get(v.ricetta_id) : undefined;

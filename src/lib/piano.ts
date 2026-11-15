@@ -1,10 +1,13 @@
 import { supabase } from './supabase';
 
-export type Pasto = 'colazione' | 'pranzo' | 'cena';
-export const PASTI: { valore: Pasto; nome: string }[] = [
-  { valore: 'colazione', nome: 'Colazione' },
-  { valore: 'pranzo', nome: 'Pranzo' },
-  { valore: 'cena', nome: 'Cena' },
+export type Pasto = 'colazione' | 'merenda_mattino' | 'pranzo' | 'merenda_pomeriggio' | 'cena';
+/** `breve` sta nella colonna stretta del menù; `tag` è il tag delle ricette più adatte a quel pasto. */
+export const PASTI: { valore: Pasto; nome: string; breve: string; tag?: string }[] = [
+  { valore: 'colazione', nome: 'Colazione', breve: 'Colazione', tag: 'colazione' },
+  { valore: 'merenda_mattino', nome: 'Merenda del mattino', breve: 'Merenda', tag: 'snack' },
+  { valore: 'pranzo', nome: 'Pranzo', breve: 'Pranzo' },
+  { valore: 'merenda_pomeriggio', nome: 'Merenda del pomeriggio', breve: 'Merenda', tag: 'snack' },
+  { valore: 'cena', nome: 'Cena', breve: 'Cena' },
 ];
 
 export type VocePiano = {

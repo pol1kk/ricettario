@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { formattaQuantita, type Casa, type Ricetta } from '../lib/dati';
 import { PASTI, segnaCucinataOggi, nomePorzioni, type Pasto } from '../lib/piano';
+import { aggiungiVoce, dataDiOggi, valoriRicetta } from '../lib/diario';
 import { tornaAllElenco } from '../lib/rotta';
 import { usaSchermoAcceso } from '../lib/schermo';
 import Copertina from './Copertina';
@@ -52,6 +53,7 @@ export default function Cucina({
   const [attesa, setAttesa] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
   const [fatto, setFatto] = useState<Pasto | null>(null);
+  const [nelDiario, setNelDiario] = useState<'no' | 'attesa' | 'si'>('no');
   usaSchermoAcceso(true);
 
   const id = ricetta?.id;
@@ -104,6 +106,28 @@ export default function Cucina({
     setAttesa(false);
   }
 
+  async function aggiungiAlDiario() {
+    setNelDiario('attesa');
+    setErrore(null);
+    try {
+      await aggiungiVoce({
+        data: dataDiOggi(),
+        pasto: fatto!,
+        nome: ricetta!.titolo,
+        ricetta_id: ricetta!.id,
+        ingrediente_id: null,
+        piano_id: null,
+        quantita: 1,
+        unita: 'porzioni',
+        ...valoriRicetta(ricetta!, 1),
+      });
+      setNelDiario('si');
+    } catch (e) {
+      setErrore(`Non aggiunta al diario: ${(e as Error).message}. Controlla la connessione e riprova.`);
+      setNelDiario('no');
+    }
+  }
+
   const ingredienti = (
     <ul className="ingredienti">
       {ricetta.ingredienti.map((i, n) => (
@@ -138,7 +162,23 @@ export default function Cucina({
           <p className="nota">{ricetta.copertina_url ? 'Vuoi aggiornare la foto del piatto?' : 'Vuoi aggiungere la foto del piatto?'}</p>
           <Copertina ricetta={ricetta} casaId={casa.id} ricarica={ricarica} />
         </div>
-        <button onClick={tornaAllElenco}>Torna alla ricetta</button>
+        <div className="finale-diario">
+          {nelDiario === 'si' ? (
+            <p className="nota" role="status">
+              Aggiunta al tuo diario di oggi: 1 porzione. Dal Diario puoi cambiare quantità e pasto.
+            </p>
+          ) : (
+            <button className="contorno" disabled={nelDiario === 'attesa'} onClick={aggiungiAlDiario}>
+              {nelDiario === 'attesa' ? 'Salvataggio…' : 'L’ho mangiata: aggiungi al diario'}
+            </button>
+          )}
+          {errore && (
+            <p role="alert" className="errore">
+              {errore}
+            </p>
+          )}
+        </div>
+        <button onClick={() => tornaAllElenco()}>Torna alla ricetta</button>
       </main>
     );
   }
