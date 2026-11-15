@@ -36,9 +36,9 @@ const maiuscola = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function titoloGiorno(s: string): string {
   const lungo = daIso(s).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-  if (s === oggi()) return `Oggi, ${lungo}`;
-  if (s === piuGiorni(oggi(), -1)) return `Ieri, ${lungo}`;
-  if (s === piuGiorni(oggi(), 1)) return `Domani, ${lungo}`;
+  if (s === oggi()) return 'Oggi';
+  if (s === piuGiorni(oggi(), -1)) return 'Ieri';
+  if (s === piuGiorni(oggi(), 1)) return 'Domani';
   return maiuscola(lungo);
 }
 
