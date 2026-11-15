@@ -165,7 +165,7 @@ export default function SchedaRicetta({
         )}
       </header>
 
-      <AzioniRicetta ricetta={ricetta} casa={casa} />
+      <AzioniRicetta ricetta={ricetta} casa={casa} porzioniScelte={porzioni} />
 
       {ricetta.da_verificare && (
         <p className="verifica">

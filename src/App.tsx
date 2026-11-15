@@ -12,6 +12,7 @@ import GestioneTag from './screens/GestioneTag';
 import Menu from './screens/Menu';
 import Lista from './screens/Lista';
 import Barra from './screens/Barra';
+import Cucina from './screens/Cucina';
 
 type Stato = { tipo: 'carico' } | { tipo: 'errore'; messaggio: string } | { tipo: 'pronto'; dati: Dati };
 
@@ -124,6 +125,17 @@ function Dentro({ session }: { session: Session }) {
         ricetta={dati.ricette.find((r) => r.id === rotta.id)}
         casa={dati.casa}
         tag={dati.tag}
+        ricarica={ricarica}
+      />
+    );
+  }
+
+  if (rotta.vista === 'cucina') {
+    return (
+      <Cucina
+        key={rotta.id}
+        ricetta={dati.ricette.find((r) => r.id === rotta.id)}
+        casa={dati.casa}
         ricarica={ricarica}
       />
     );

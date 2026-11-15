@@ -2,12 +2,23 @@ import { useState, type FormEvent } from 'react';
 import type { Casa, Ricetta } from '../lib/dati';
 import { giornoRelativo, oggi, piuGiorni } from '../lib/date';
 import { PASTI, aggiungiAlPiano, pastoDiAdesso, type Pasto } from '../lib/piano';
+import { vai } from '../lib/rotta';
+import { avviaCucina } from './Cucina';
 import Porzioni from './Porzioni';
 
 type Aperto = 'menu' | 'cucinato' | null;
 
 /** "Aggiungi al menù" e "L'ho cucinata", nella scheda della ricetta. */
-export default function AzioniRicetta({ ricetta, casa }: { ricetta: Ricetta; casa: Casa }) {
+export default function AzioniRicetta({
+  ricetta,
+  casa,
+  porzioniScelte,
+}: {
+  ricetta: Ricetta;
+  casa: Casa;
+  /** le porzioni mostrate in questo momento nella scheda: la modalità cucina parte da queste */
+  porzioniScelte: number;
+}) {
   const [aperto, setAperto] = useState<Aperto>(null);
   const [giorno, setGiorno] = useState(oggi());
   const [pasto, setPasto] = useState<Pasto>(pastoDiAdesso());
@@ -53,13 +64,21 @@ export default function AzioniRicetta({ ricetta, casa }: { ricetta: Ricetta; cas
   return (
     <div className="azioni-ricetta">
       <div className="coppia">
+        <button
+          onClick={() => {
+            avviaCucina(ricetta.id, porzioniScelte);
+            vai(`/cucina/${ricetta.id}`);
+          }}
+        >
+          Cucina
+        </button>
         <button className="contorno" aria-expanded={aperto === 'menu'} onClick={() => apri('menu')}>
           Aggiungi al menù
         </button>
-        <button className="contorno" aria-expanded={aperto === 'cucinato'} onClick={() => apri('cucinato')}>
-          L'ho cucinata
-        </button>
       </div>
+      <button className="secondario gia-cucinata" aria-expanded={aperto === 'cucinato'} onClick={() => apri('cucinato')}>
+        L'ho già cucinata
+      </button>
 
       {aperto && (
         <form onSubmit={conferma} className="scheda modulo">

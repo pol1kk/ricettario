@@ -1920,3 +1920,215 @@ button.cambia-reparto[aria-expanded='true'] {
 .aggiungi-voce > label[for='reparto-voce'] {
   margin-top: 0.25rem;
 }
+
+/* ================= modalità cucina ================= */
+.gia-cucinata {
+  display: block;
+  margin: 0.25rem auto 0;
+  font-size: 0.95rem;
+}
+
+.cucina {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+}
+
+.cucina .barra {
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.cucina .barra .indietro {
+  margin-bottom: -0.25rem;
+}
+
+a.reel {
+  color: var(--basilico);
+  font-weight: 650;
+  text-underline-offset: 0.2em;
+}
+
+.titolo-cucina {
+  color: var(--tenue);
+  font-size: 0.98rem;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+}
+
+.viste {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: 999px;
+}
+
+.viste button {
+  min-height: 2.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--inchiostro);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.viste button:hover {
+  background: color-mix(in srgb, var(--basilico) 10%, transparent);
+}
+
+.viste button[aria-pressed='true'] {
+  background: var(--basilico);
+  color: var(--su-basilico);
+}
+
+.preparazione h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+}
+
+.preparazione .nota {
+  margin: 1.25rem 0 0.25rem;
+}
+
+.cucina .ingredienti h3 {
+  margin: 1.25rem 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--basilico);
+}
+
+.cucina .ingredienti li + li {
+  border-top: 0;
+}
+
+.cucina .ingredienti button {
+  border-bottom: 1px solid var(--linea);
+  font-size: 1.1rem;
+  padding: 0.8rem 0;
+}
+
+.passo {
+  animation: entra 0.22s ease both;
+}
+
+.avanzamento p {
+  color: var(--tenue);
+  font-size: 0.98rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.binario {
+  height: 6px;
+  margin: 0.6rem 0 1.75rem;
+  border-radius: 3px;
+  background: var(--linea);
+  overflow: hidden;
+}
+
+.binario div {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--basilico);
+  transition: width 0.25s ease;
+}
+
+.testo-passo {
+  font-size: clamp(1.5rem, 6.4vw, 1.9rem);
+  font-weight: 550;
+  line-height: 1.32;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+
+.tutti-i-passi {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tutti-i-passi h3 {
+  margin: 1.25rem 0 0.2rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--basilico);
+}
+
+.tutti-i-passi button {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  min-height: 0;
+  padding: 0.8rem 0.75rem;
+  margin: 0 -0.75rem;
+  width: calc(100% + 1.5rem);
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+  line-height: 1.45;
+}
+
+.tutti-i-passi button:hover {
+  background: color-mix(in srgb, var(--basilico) 7%, transparent);
+}
+
+.tutti-i-passi button[aria-current='step'] {
+  background: color-mix(in srgb, var(--basilico) 12%, transparent);
+  font-weight: 600;
+}
+
+.tutti-i-passi button[data-fatto='true'] {
+  color: var(--tenue);
+}
+
+.tutti-i-passi button[data-fatto='true'] .numero {
+  background: var(--linea);
+  color: var(--tenue);
+}
+
+.comandi-cucina {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 10;
+  display: flex;
+  gap: 0.6rem;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 0.75rem max(1.25rem, env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 0.9rem);
+  background: color-mix(in srgb, var(--carta) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1.5px solid var(--linea);
+  view-transition-name: comandi-cucina;
+}
+
+.comandi-cucina button {
+  min-height: 3.75rem;
+  font-size: 1.15rem;
+}
+
+.comandi-cucina .contorno {
+  flex: 0 0 38%;
+  background: var(--superficie);
+}
+
+.cucina .errore {
+  margin-top: 1.5rem;
+}
+
+.cucina.finita {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 2rem);
+}
+
+.foto-finale {
+  margin: 1.75rem 0 0.5rem;
+}
+
+.foto-finale .nota {
+  margin-bottom: 0.6rem;
+}

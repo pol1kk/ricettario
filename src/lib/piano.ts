@@ -57,6 +57,34 @@ export async function togliDalPiano(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Segna una ricetta come cucinata oggi. Se nel menù di oggi c'è già quella ricetta non ancora
+ * cucinata, aggiorna quella voce invece di crearne una seconda. Restituisce il pasto usato.
+ */
+export async function segnaCucinataOggi(casaId: string, ricettaId: string, porzioni: number): Promise<Pasto> {
+  const giorno = new Date();
+  const data = `${giorno.getFullYear()}-${String(giorno.getMonth() + 1).padStart(2, '0')}-${String(giorno.getDate()).padStart(2, '0')}`;
+  const adesso = new Date().toISOString();
+  const prevista = await supabase
+    .from('piano_pasti')
+    .select('id, pasto')
+    .eq('casa_id', casaId)
+    .eq('ricetta_id', ricettaId)
+    .eq('data', data)
+    .is('cucinata_il', null)
+    .order('creato_il')
+    .limit(1);
+  if (prevista.error) throw new Error(prevista.error.message);
+  if (prevista.data?.length) {
+    const voce = prevista.data[0] as { id: string; pasto: Pasto };
+    await modificaPiano(voce.id, { porzioni, cucinata_il: adesso });
+    return voce.pasto;
+  }
+  const pasto = pastoDiAdesso();
+  await aggiungiAlPiano(casaId, { data, pasto, ricetta_id: ricettaId, porzioni, cucinata: true });
+  return pasto;
+}
+
 /** Il pasto più probabile a quest'ora, per precompilare le scelte. */
 export function pastoDiAdesso(): Pasto {
   const ora = new Date().getHours();

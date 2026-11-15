@@ -1,36 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { formattaQuantitaSpesa, leggiCache, scriviCache, semplifica, type Casa, type Dati } from '../lib/dati';
 import { aggiungi, elimina, sposta, spunta, usaLista, type Voce } from '../lib/lista';
 import { supabase } from '../lib/supabase';
 import { vaiAScheda } from '../lib/rotta';
+import { usaSchermoAcceso } from '../lib/schermo';
 
 type Base = { id: string; nome: string };
-
-/** Tiene acceso lo schermo finché `attivo` è vero; dove non è supportato non fa nulla. */
-function usaSchermoAcceso(attivo: boolean) {
-  useEffect(() => {
-    if (!attivo || !('wakeLock' in navigator)) return;
-    let blocco: WakeLockSentinel | null = null;
-    let finito = false;
-    const chiedi = () =>
-      navigator.wakeLock.request('screen').then(
-        (b) => {
-          if (finito) void b.release();
-          else blocco = b;
-        },
-        () => undefined,
-      );
-    // il blocco si perde quando l'app va in secondo piano: si richiede al ritorno
-    const visibile = () => document.visibilityState === 'visible' && void chiedi();
-    void chiedi();
-    document.addEventListener('visibilitychange', visibile);
-    return () => {
-      finito = true;
-      document.removeEventListener('visibilitychange', visibile);
-      void blocco?.release();
-    };
-  }, [attivo]);
-}
 
 export default function Lista({ dati, casa }: { dati: Dati; casa: Casa }) {
   const lista = usaLista(casa.id);
