@@ -74,6 +74,9 @@ export default function ScegliIngrediente({
         carboidrati_100: conValori ? valoriNuovo.carboidrati_100 : null,
         grassi_100: conValori ? valoriNuovo.grassi_100 : null,
         grammi_per_unita: null,
+        gruppo: null,
+        porzione_spuntino: null,
+        ruolo_spuntino: null,
       });
     } catch (err) {
       setErrore((err as Error).message);

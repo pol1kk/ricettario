@@ -40,6 +40,7 @@ L'indirizzo è nel frammento (`#/…`). `usaRotta()` restituisce la rotta corren
 | `#/cucina/<id>` | `cucina` | `Cucina.tsx` | sopra |
 | `#/obiettivi` | `obiettivi` | `Obiettivi.tsx` | sopra |
 | `#/consiglio` | `consiglio` | `Consiglio.tsx` ("Cosa mangio?") | sopra |
+| `#/preferenze` | `preferenze` | `Preferenze.tsx` (preferenze del menù, questionario la prima volta) | sopra |
 | `#/impostazioni`, `#/tag` | | `Impostazioni.tsx`, `GestioneTag.tsx` | sopra |
 
 - Le viste principali (`PRINCIPALI`) hanno la barra in basso (`Barra.tsx`): Diario, Menù, Dispensa, Ricette.
@@ -63,6 +64,8 @@ L'indirizzo è nel frammento (`#/…`). `usaRotta()` restituisce la rotta corren
 | `lib/lista.ts` | lista della spesa **con coda offline** (unico punto che scrive senza rete) |
 | `lib/diario.ts` | diario e obiettivi; calcoli sui valori (`valoriRicetta`, `valoriAlimento`, `pesoPorzione`, `somma`, `moltiplica`) |
 | `lib/dispensa.ts` | confezioni, prodotti e codici a barre, Open Food Facts, date e scadenze, scarico (`scalaDispensa`, `riassumiDispensa`) |
+| `lib/preferenze.ts` | preferenze del menù della casa e di ciascuno, obiettivi di tutta la casa (`leggiObiettiviCasa`) |
+| `lib/proposta.ts` | "Proponi settimana": **solo calcolo** (`proponiSettimana`, `alternative`, `alternativaPerMe`, `lontanoDagliObiettivi`) |
 | `lib/consiglio.ts` | consiglio di un pasto: **solo calcolo**, senza rete né interfaccia (`consiglia`, `obiettivoDelPasto`) |
 | `lib/date.ts` | giorni come stringhe `aaaa-mm-gg`, settimana dal lunedì |
 | `lib/foto.ts`, `lib/schermo.ts`, `lib/password.ts` | foto di copertina, schermo acceso, promemoria password |
@@ -85,13 +88,15 @@ Schema `public`; funzioni di servizio in `private`. I file in `supabase/migratio
 |---|---|
 | `case`, `membri`, `inviti` | la casa, chi ne fa parte (`membri.nome` è il nome mostrato agli altri, si cambia con `imposta_nome`), inviti per email |
 | `reparti` | reparti del supermercato, con `ordine` |
-| `ingredienti` | catalogo: `nome` (minuscolo, unico), `unita_base` (`g`, `ml`, `unita`), `tracciamento` (`quantita` o `stato`), `icona` (emoji), valori per 100 g/ml, `grammi_per_unita` |
+| `ingredienti` | catalogo: `nome` (minuscolo, unico), `unita_base` (`g`, `ml`, `unita`), `tracciamento` (`quantita` o `stato`), `icona` (emoji), valori per 100 g/ml, `grammi_per_unita`, `gruppo` (per i limiti), `porzione_spuntino` e `ruolo_spuntino` (per colazioni e merende) |
 | `alias_ingredienti` | altri nomi dello stesso ingrediente |
 | `ricette` | titolo, reel, porzioni, tempi, `passaggi` (jsonb `[{testo, gruppo?}]`), valori **per porzione**, `valori_fonte` (`dichiarati` o `stimati`), `da_verificare` |
 | `ricetta_ingredienti` | quantità nell'unità base dell'ingrediente; quantità nulla = q.b.; `gruppo`, `facoltativo` |
 | `tag`, `ricetta_tag` | tag a gruppi; quello con `automatico = true` ("veloce") lo calcola l'app dal tempo |
-| `piano_pasti` | menù: giorno, pasto, ricetta **o** nota, porzioni, `cucinata_il`, `per_utente` (nullo = per tutta la casa, altrimenti voce personale) |
+| `piano_pasti` | menù: giorno, pasto, ricetta **o** nota, porzioni, `cucinata_il`, `per_utente` (nullo = per tutta la casa, altrimenti voce personale), `proposta`, `alimenti` |
 | `lista_spesa`, `voci_ricordate` | lista (origine `menu`, `manuale`, `scorta`) e reparto ricordato per le voci scritte a mano |
+| `preferenze_casa` | preferenze del menù della casa: una riga, campo `dati` jsonb (tipo `PreferenzeCasa`) |
+| `preferenze_persona` | preferenze di ciascuno (tipo `PreferenzePersona`): **le leggono tutti i membri, le scrive solo l'interessato** |
 | `prodotti` | un codice a barre collegato a un ingrediente, con formato e valori |
 | `dispensa` | **una riga per confezione**; `quantita` oppure `stato`; `scadenza`; `posizione`; `esaurita_il` quando finisce |
 | `movimenti_dispensa` | storico: acquisto, uso, ricetta, buttato, correzione |
@@ -110,6 +115,7 @@ fotografia del momento), `obiettivi` (una riga per persona).
 | `genera_lista_spesa(casa, dal, al)` | rifà le voci di origine `menu` dalla settimana, lascia le manuali; compra solo ciò che manca rispetto alla dispensa (lo scaduto non conta) |
 | `metti_in_dispensa(casa, json)` | confezioni + movimento + toglie la voce dalla lista |
 | `chiudi_confezione(dispensa, motivo)` | confezione finita o buttata |
+| `obiettivi_casa(casa)` | obiettivi di tutti i membri, solo per calcolare il menù (la tabella `obiettivi` resta leggibile solo dal proprietario) |
 | `scala_dispensa(casa, json)` | toglie le quantità usate dalle confezioni che scadono prima, con i movimenti |
 
 **Due idee da tenere a mente**
@@ -129,6 +135,22 @@ fotografia del momento), `obiettivi` (una riga per persona).
   se in un pasto ha una voce sua, quelle comuni di quel pasto non la riguardano più. La usa il Diario per le proposte.
 - Stesso piatto, porzioni diverse: nel Diario la proposta di una voce del menù indica la porzione più adatta agli
   obiettivi di chi guarda (`porzioneConsigliata()` in `lib/consiglio.ts`), ed è quella che "L'ho mangiato" registra.
+
+## Proponi settimana
+
+- `Menu.tsx` carica il `Contesto` (ricette, catalogo, dispensa, preferenze della casa, e per ogni persona preferenze e
+  obiettivi) e chiama `proponiSettimana()`, che restituisce le voci da inserire; non tocca quelle esistenti e parte da oggi.
+- Passo 1, pasti comuni (pranzo e cena): solo ricette con tag primo, secondo o piatto unico. Un tag "da evitare" o un
+  limite raggiunto di **una** persona esclude il piatto per tutti. Le porzioni della voce sono la somma di quelle di ognuno.
+- Passo 2, colazione e merende personali per chi ha obiettivi: ricette con tag colazione o snack, oppure alimenti singoli
+  o in coppia. Gli alimenti proponibili hanno `ingredienti.porzione_spuntino` e `ruolo_spuntino`; le coppie ammesse sono
+  l'elenco `COPPIE`. Una voce di alimenti ha `piano_pasti.alimenti` (jsonb) e il nome leggibile in `nota`.
+- Passo 3: niente di automatico. `lontanoDagliObiettivi()` fa comparire nel menù "Proponimi un'alternativa solo per me".
+- **Limiti alle porzioni, da non allargare**: una ricetta da 0,5 a 2 porzioni (`PORZIONI_POSSIBILI`), un alimento da 0,5 a
+  1,5 volte la sua porzione tipica (`FATTORI_SPUNTINO`), ogni pasto punta alla sua quota della giornata (`PESO_PASTO`).
+- Le voci inserite hanno `proposta = true`: "Un'altra" le sostituisce, "Annulla la proposta" le toglie, "Tieni tutto" le rende normali.
+- `sorte()` varia le scelte da una settimana all'altra senza casualità: stessa settimana e stessi dati, stessa proposta.
+- Limiti sugli ingredienti: per ingrediente o per `ingredienti.gruppo`; contano tutte le voci della settimana che riguardano la persona.
 
 ## Consiglio di un pasto e scarico
 

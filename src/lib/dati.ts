@@ -59,6 +59,11 @@ export type Ingrediente = {
   grassi_100: number | null;
   /** peso medio di un pezzo, per gli ingredienti contati a unità */
   grammi_per_unita: number | null;
+  /** per i limiti settimanali: carne_rossa, carne_bianca, pesce, uova, latticini, legumi */
+  gruppo: string | null;
+  /** porzione tipica (nell'unità base) e ruolo quando si mangia da solo o in coppia a colazione o merenda */
+  porzione_spuntino: number | null;
+  ruolo_spuntino: string | null;
 };
 export type Reparto = { id: string; nome: string; ordine: number };
 export type Dati = {
@@ -99,7 +104,7 @@ export async function caricaDati(): Promise<Dati> {
                                ingredienti ( nome, icona, tracciamento ) )`,
       )
       .order('titolo'),
-    supabase.from('ingredienti').select('id, nome, icona, tracciamento, unita_base, kcal_100, proteine_100, carboidrati_100, grassi_100, grammi_per_unita, reparti ( nome, ordine )').order('nome'),
+    supabase.from('ingredienti').select('id, nome, icona, tracciamento, unita_base, kcal_100, proteine_100, carboidrati_100, grassi_100, grammi_per_unita, gruppo, porzione_spuntino, ruolo_spuntino, reparti ( nome, ordine )').order('nome'),
     supabase.from('reparti').select('id, nome, ordine').order('ordine'),
     supabase.from('voci_ricordate').select('testo, reparto_id'),
   ]);
@@ -155,6 +160,9 @@ export async function caricaDati(): Promise<Dati> {
     carboidrati_100: number | null;
     grassi_100: number | null;
     grammi_per_unita: number | null;
+    gruppo: string | null;
+    porzione_spuntino: number | null;
+    ruolo_spuntino: string | null;
     reparti: { nome: string; ordine: number } | null;
   };
   const ingredienti = ((catalogo.data ?? []) as unknown as RigaIngrediente[]).map(
@@ -171,6 +179,9 @@ export async function caricaDati(): Promise<Dati> {
       carboidrati_100: i.carboidrati_100,
       grassi_100: i.grassi_100,
       grammi_per_unita: i.grammi_per_unita,
+      gruppo: i.gruppo ?? null,
+      porzione_spuntino: i.porzione_spuntino ?? null,
+      ruolo_spuntino: i.ruolo_spuntino ?? null,
     }),
   );
 

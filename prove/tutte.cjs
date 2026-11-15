@@ -5,7 +5,7 @@ const { spawn } = require('child_process');
 const http = require('http');
 const path = require('path');
 
-const PROVE = ['diario', 'dispensa', 'consiglio', 'menu'];
+const PROVE = ['diario', 'dispensa', 'consiglio', 'menu', 'proposta'];
 const scelte = process.argv.slice(2).length ? process.argv.slice(2) : PROVE;
 
 const risponde = () => new Promise((ok) => http.get('http://127.0.0.1:4173/ricettario/', (r) => { r.resume(); ok(true); }).on('error', () => ok(false)));
@@ -25,7 +25,7 @@ const aspetta = (ms) => new Promise((ok) => setTimeout(ok, ms));
       console.log(`OK       ${nome} (${Math.round((Date.now() - inizio) / 1000)} s)`);
     } catch (e) {
       fallite++;
-      console.log(`FALLITA  ${nome}: ${String(e.message).split('\n').slice(0, 4).join(' | ')}`);
+      console.log(`FALLITA  ${nome}: ${String(e.stack).split('\n').filter((l) => !l.includes('node_modules')).slice(0, 6).join(' | ')}`);
     }
   }
   server?.kill();

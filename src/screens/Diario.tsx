@@ -16,6 +16,7 @@ import {
   nomeQuantita,
   obiettivoDel,
   somma,
+  valoriAlimento,
   valoriRicetta,
   type CampoValore,
   type Obiettivi,
@@ -326,7 +327,34 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
   const porzionePerMe = (ricetta: Ricetta, pasto: Pasto) =>
     haObiettivo(obiettivo) ? porzioneConsigliata(ricetta, obiettivoDelPasto(obiettivo, somma(delGiorno), pasto)).porzioni : 1;
 
+  /** Gli alimenti di una voce del menù fatta di alimenti singoli, con i loro valori. */
+  const alimentiDi = (p: VocePiano) =>
+    (p.alimenti ?? []).flatMap((a) => {
+      const i = dati.ingredienti.find((x) => x.id === a.ingrediente_id);
+      return i ? [{ ingrediente: i, quantita: a.quantita, valori: valoriAlimento(i, a.quantita) }] : [];
+    });
+
   function conferma(p: VocePiano) {
+    const alimenti = alimentiDi(p);
+    if (alimenti.length > 0) {
+      void fai(async () => {
+        for (const a of alimenti) {
+          await aggiungiVoce({
+            data: giorno,
+            pasto: p.pasto,
+            nome: a.ingrediente.nome.charAt(0).toUpperCase() + a.ingrediente.nome.slice(1),
+            ricetta_id: null,
+            ingrediente_id: a.ingrediente.id,
+            piano_id: p.id,
+            quantita: a.quantita,
+            unita: a.ingrediente.unita_base,
+            ...a.valori,
+          });
+        }
+        if (!p.cucinata_il) await modificaPiano(p.id, { cucinata_il: new Date().toISOString() });
+      });
+      return;
+    }
     const ricetta = p.ricetta_id ? perId.get(p.ricetta_id) : undefined;
     if (!ricetta) {
       // una nota del menù ("cena fuori") non ha valori: si completano a mano
@@ -472,6 +500,11 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
                           Dal menù{v.per_utente && ', solo per te'}
                           {ricetta && <>, {quanta === 1 ? '1 porzione' : `per te ${nomeQuantita(quanta, 'porzioni')}`}, </>}
                           {ricetta && <Sintesi valori={valoriRicetta(ricetta, quanta)} />}
+                          {alimentiDi(v).length > 0 && (
+                            <>
+                              , {alimentiDi(v).map((a) => nomeQuantita(a.quantita, a.ingrediente.unita_base)).join(' + ')}, <Sintesi valori={moltiplica(somma(alimentiDi(v).map((a) => a.valori)), 1)} />
+                            </>
+                          )}
                         </span>
                       </span>
                       <button className="contorno" disabled={attesa} onClick={() => conferma(v)}>

@@ -42,7 +42,7 @@ export type Consiglio = {
 };
 
 /** Quanto pesa di solito ogni pasto sulla giornata: serve a dividere ciò che resta tra i pasti ancora da fare. */
-const PESO_PASTO: Record<Pasto, number> = { colazione: 20, merenda_mattino: 10, pranzo: 30, merenda_pomeriggio: 10, cena: 30 };
+export const PESO_PASTO: Record<Pasto, number> = { colazione: 20, merenda_mattino: 10, pranzo: 30, merenda_pomeriggio: 10, cena: 30 };
 const PORZIONI_POSSIBILI = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 /** tag che dicono che una ricetta non è un pasto principale */
 const TAG_LEGGERI = ['colazione', 'snack', 'dolce'];
@@ -63,7 +63,7 @@ export function obiettivoDelPasto(obiettivo: Valori, mangiato: Record<keyof Valo
 }
 
 /** Distanza tra i valori di una porzione scalata e l'obiettivo del pasto: 0 = perfetta, 1 = lontana. Contano calorie e proteine. */
-function distanza(valori: Valori, meta: Valori): number | null {
+export function distanza(valori: Valori, meta: Valori): number | null {
   const parti: number[] = [];
   for (const [campo, peso] of [['kcal', 2], ['proteine_g', 1]] as const) {
     const m = meta[campo];

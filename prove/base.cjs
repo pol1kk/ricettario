@@ -20,6 +20,7 @@ const giorni = (k) => { const d = new Date(); d.setDate(d.getDate() + k); return
 const cifre = (s) => s.split('-').reverse().join('');
 
 // ---------- dati finti ----------
+const SPUNTINI = { i2: ['legumi', null, null], i6: ['uova', 2, 'uova'], i7: ['latticini', 150, 'latticino'], i9: [null, 3, 'pane'], i10: [null, 25, 'frutta_secca'] };
 // [id, nome, icona, tracciamento, reparto, ordine reparto, unità, kcal, proteine, carboidrati, grassi per 100, grammi per pezzo]
 const CATALOGO = [
   ['i1', 'riso', '🍚', 'quantita', 'Pasta, riso e cereali', 50, 'g', 350, 7, 78, 0.6, null],
@@ -30,12 +31,16 @@ const CATALOGO = [
   ['i6', 'uova', '🥚', 'quantita', 'Latticini e uova', 40, 'unita', 143, 12.6, 0.7, 9.9, 55],
   ['i7', 'fiocchi di latte magri', null, 'quantita', 'Latticini e uova', 40, 'g', 80, 12, 3, 2, null],
   ['i8', 'curcuma', null, 'stato', 'Condimenti e spezie', 70, 'g', 310, 8, 45, 10, null],
+  ['i9', 'gallette di riso', null, 'quantita', 'Pane e forno', 20, 'unita', 385, 8, 80, 3, 9],
+  ['i10', 'mandorle', null, 'quantita', 'Frutta secca e snack', 90, 'g', 600, 21, 5, 53, null],
 ].map(([id, nome, icona, tracciamento, reparto, ordine, unita_base, kcal_100, proteine_100, carboidrati_100, grassi_100, grammi_per_unita]) => ({
   id, nome, icona, tracciamento, unita_base, kcal_100, proteine_100, carboidrati_100, grassi_100, grammi_per_unita,
+  // [gruppo per i limiti, porzione tipica da spuntino, ruolo]
+  ...Object.fromEntries(['gruppo', 'porzione_spuntino', 'ruolo_spuntino'].map((campo, n) => [campo, (SPUNTINI[id] ?? [null, null, null])[n]])),
   reparti: { nome: reparto, ordine },
 }));
 
-const TAG = [['vegetariana', 'Dieta'], ['proteica', 'Obiettivo'], ['colazione', 'Portata'], ['primo', 'Portata']]
+const TAG = [['vegetariana', 'Dieta'], ['proteica', 'Obiettivo'], ['colazione', 'Portata'], ['primo', 'Portata'], ['secondo', 'Portata']]
   .map(([nome, gruppo], i) => ({ id: 't' + i, nome, gruppo, ordine: i, automatico: false }));
 
 const REPARTI = [['r1', 'Frutta e verdura', 10], ['r2', 'Latticini e uova', 40], ['r3', 'Bevande', 110], ['r4', 'Altro', 999]]
@@ -67,7 +72,7 @@ function ricetteFinte(catalogo) {
       ricetta_tag: [{ tag_id: 't0' }, { tag_id: 't2' }],
       ricetta_ingredienti: [ing('b', 'i7', 450, 'g', 1), ing('b', 'i6', 4, 'unita', 2)] },
     { ...base, id: ID.tamago, titolo: 'Tamago sando fit', porzioni: 1, kcal: 310, proteine_g: 20.5, carboidrati_g: 30, grassi_g: 11.5, valori_fonte: 'dichiarati',
-      ricetta_tag: [{ tag_id: 't1' }],
+      ricetta_tag: [{ tag_id: 't1' }, { tag_id: 't4' }],
       ricetta_ingredienti: [ing('c', 'i6', 3, 'unita', 1), ing('c', 'i4', 1.5, 'g', 2)] },
   ];
 }
@@ -91,6 +96,9 @@ async function crea(opzioni = {}) {
   const catalogo = CATALOGO.map((x) => ({ ...x }));
   const stato = {
     catalogo, ricette: ricetteFinte(catalogo), piano: [], lista: [], diario: [], obiettivi: [], dispensa: [], prodotti: [], ricordate: [],
+    preferenzeCasa: null,
+    preferenzePersone: {},
+    obiettiviAltri: [],
     membri: [{ utente_id: 'u1', nome: 'Paul' }, { utente_id: 'u2', nome: 'Diana' }],
     /** risposte di Open Food Facts per codice a barre */
     openFoodFacts: {},
@@ -107,7 +115,7 @@ async function crea(opzioni = {}) {
 
   const j = (corpo, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(corpo) });
   const vuota = (status = 204) => ({ status, body: '' });
-  const idDi = (url) => (decodeURIComponent(url).match(/id=eq\.([^&]+)/) || [])[1];
+  const idDi = (url) => (decodeURIComponent(url).match(/[?&]id=eq\.([^&]+)/) || [])[1];
   const rotta = (schema, f) => p.route(schema, (r) => (stato.rete ? f(r, r.request()) : r.abort('internetdisconnected')));
   const corpo = (q) => JSON.parse(q.postData());
 
@@ -118,6 +126,19 @@ async function crea(opzioni = {}) {
   await rotta('**/rest/v1/reparti**', (r) => r.fulfill(j(REPARTI)));
   // chi usa l'app nelle prove è u1 (Paul); u2 è l'altra persona della casa
   await rotta('**/rest/v1/membri**', (r) => r.fulfill(j(stato.membri)));
+  await rotta('**/rest/v1/preferenze_casa**', (r, q) => {
+    if (q.method() === 'GET') return r.fulfill(j(stato.preferenzeCasa ? [{ dati: stato.preferenzeCasa }] : []));
+    stato.preferenzeCasa = corpo(q).dati;
+    return r.fulfill(vuota(201));
+  });
+  await rotta('**/rest/v1/preferenze_persona**', (r, q) => {
+    if (q.method() === 'GET') return r.fulfill(j(Object.entries(stato.preferenzePersone).map(([utente_id, dati]) => ({ utente_id, dati }))));
+    const v = corpo(q);
+    stato.preferenzePersone[v.utente_id] = v.dati;
+    return r.fulfill(vuota(201));
+  });
+  // obiettivi di tutta la casa: quelli di chi usa l'app (u1) più quelli messi in stato.obiettiviAltri
+  await rotta('**/rest/v1/rpc/obiettivi_casa', (r) => r.fulfill(j([...stato.obiettivi.map((o) => ({ utente_id: 'u1', ...o })), ...stato.obiettiviAltri])));
   await rotta('**/rest/v1/rpc/imposta_nome', (r, q) => { stato.membri.find((x) => x.utente_id === 'u1').nome = corpo(q).p_nome.trim(); return r.fulfill(vuota()); });
 
   await rotta('**/rest/v1/ingredienti**', (r, q) => {
@@ -140,9 +161,19 @@ async function crea(opzioni = {}) {
   await rotta('**/rest/v1/piano_pasti**', (r, q) => {
     const m = q.method();
     if (m === 'GET') return r.fulfill(j(stato.piano.map((x) => ({ per_utente: null, ...x }))));
-    if (m === 'POST') { const v = corpo(q); chiamate.push(['piano+', v.data, v.pasto, v.porzioni, !!v.cucinata_il]); stato.piano.push({ id: nuovoId('p'), per_utente: null, ...v }); return r.fulfill(vuota(201)); }
-    if (m === 'PATCH') { Object.assign(stato.piano.find((x) => x.id === idDi(q.url())), corpo(q)); return r.fulfill(vuota()); }
-    stato.piano = stato.piano.filter((x) => x.id !== idDi(q.url()));
+    if (m === 'POST') {
+      // una voce sola oppure un elenco (come le inserisce "Proponi settimana")
+      for (const v of [].concat(corpo(q))) {
+        chiamate.push(['piano+', v.data, v.pasto, v.porzioni, !!v.cucinata_il]);
+        stato.piano.push({ id: nuovoId('p'), per_utente: null, proposta: false, alimenti: null, ...v });
+      }
+      return r.fulfill(vuota(201));
+    }
+    const perId = idDi(q.url());
+    // senza id la richiesta riguarda tutte le voci proposte (annulla o tieni la proposta)
+    const colpite = (x) => (perId ? x.id === perId : x.proposta === true);
+    if (m === 'PATCH') { for (const x of stato.piano.filter(colpite)) Object.assign(x, corpo(q)); return r.fulfill(vuota()); }
+    stato.piano = stato.piano.filter((x) => !colpite(x));
     return r.fulfill(vuota());
   });
 

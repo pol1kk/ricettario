@@ -2,9 +2,16 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { supabase } from '../lib/supabase';
 import { formattaMinuti, formattaValore, leggiCache, scriviCache, semplifica, type Casa, type Dati, type Ricetta } from '../lib/dati';
 import { lunedi, nomeGiorno, nomeSettimana, oggi, piuGiorni } from '../lib/date';
+import { leggiDispensa } from '../lib/dispensa';
+import { leggiObiettiviCasa, leggiPreferenzeCasa, leggiPreferenzePersone } from '../lib/preferenze';
+import { alternativaPerMe, alternative, lontanoDagliObiettivi, proponiSettimana, type Contesto } from '../lib/proposta';
+import { PROPONI_DOPO } from './Preferenze';
 import {
   PASTI,
   aggiungiAlPiano,
+  aggiungiVoci,
+  annullaProposta,
+  tieniProposta,
   leggiPersone,
   leggiPiano,
   modificaPiano,
@@ -177,6 +184,11 @@ export default function Menu({ dati, casa, utente, settimana, setSettimana }: Pr
   const [persone, setPersone] = useState<Record<string, string>>(() => leggiCache<Record<string, string>>('persone') ?? {});
   // dopo "Per me qualcos'altro": la voce comune da cui proporre di togliere una porzione
   const [daRidurre, setDaRidurre] = useState<VocePiano | null>(null);
+  // quello che serve a "Proponi settimana": dispensa, preferenze e obiettivi di tutta la casa
+  const [contesto, setContesto] = useState<Contesto | null>(null);
+  const [messaggio, setMessaggio] = useState<string | null>(null);
+  // per "Un'altra": le proposte già viste al posto di ogni voce, per non riproporle subito
+  const [viste, setViste] = useState<Record<string, string[]>>({});
   const [aperta, setAperta] = useState<string | null>(null);
   const [attesa, setAttesa] = useState(false);
 
@@ -213,13 +225,94 @@ export default function Menu({ dati, casa, utente, settimana, setSettimana }: Pr
 
   async function fai(azione: () => Promise<void>) {
     setAttesa(true);
+    let riuscita = true;
     try {
       await azione();
       await carica();
     } catch (e) {
       setErrore(`Modifica non salvata: ${(e as Error).message}`);
+      riuscita = false;
     }
     setAttesa(false);
+    return riuscita;
+  }
+
+  useEffect(() => {
+    Promise.all([leggiDispensa(casa.id), leggiPreferenzeCasa(casa.id), leggiPreferenzePersone(casa.id), leggiObiettiviCasa(casa.id), leggiPersone(casa.id)]).then(
+      ([confezioni, prefCasa, prefPersone, obiettivi, nomi]) =>
+        setContesto({
+          ricette: dati.ricette,
+          ingredienti: dati.ingredienti,
+          confezioni,
+          casa: prefCasa,
+          porzioniCasa: casa.porzioni_predefinite,
+          persone: Object.keys(nomi).map((id) => ({ utente: id, pref: prefPersone[id] ?? {}, obiettivi: obiettivi[id] ?? null })),
+        }),
+      () => setContesto(null),
+    );
+  }, [casa.id, casa.porzioni_predefinite, dati.ricette, dati.ingredienti]);
+
+  async function proponi() {
+    setMessaggio(null);
+    if (!contesto || !voci) {
+      setErrore('Per proporre la settimana serve la connessione. Riprova tra poco.');
+      return;
+    }
+    if (!contesto.casa.compilate) {
+      // la prima volta si passa dal questionario; al ritorno la proposta parte da sola
+      sessionStorage.setItem(PROPONI_DOPO, '1');
+      vai('/preferenze');
+      return;
+    }
+    const dal = settimana < questaSettimana ? piuGiorni(settimana, 7) : settimana === questaSettimana ? oggi() : settimana;
+    const nuove = proponiSettimana(contesto, settimana, voci, dal);
+    if (nuove.length === 0) {
+      setMessaggio(settimana < questaSettimana ? 'Questa settimana è già passata.' : 'Non ci sono spazi vuoti da riempire con le tue preferenze.');
+      return;
+    }
+    if (!(await fai(() => aggiungiVoci(casa.id, nuove)))) return;
+    const comuni = nuove.filter((v) => !v.per_utente).length;
+    setMessaggio(
+      `Ho proposto ${comuni} ${comuni === 1 ? 'pasto comune' : 'pasti comuni'}` +
+        (nuove.length > comuni ? ` e ${nuove.length - comuni} tra colazioni e merende personali, per chi nella casa ha degli obiettivi.` : '.') +
+        ' Tocca una voce per cambiarla.',
+    );
+  }
+
+  // dopo il questionario del primo utilizzo: la proposta parte appena ci sono i dati
+  useEffect(() => {
+    if (contesto?.casa.compilate && voci && sessionStorage.getItem(PROPONI_DOPO)) {
+      sessionStorage.removeItem(PROPONI_DOPO);
+      void proponi();
+    }
+    // deve scattare una volta sola, quando contesto e menù sono pronti
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contesto, voci === null]);
+
+  /** "Un'altra": sostituisce una voce proposta con la proposta successiva. */
+  function unAltra(v: VocePiano) {
+    if (!contesto || !voci) return;
+    const scartate = [...(viste[v.id] ?? []), v.ricetta_id ?? v.nota ?? ''];
+    const possibili = alternative(contesto, settimana, voci, v);
+    const prossima = possibili.find((x) => !scartate.includes(x.ricetta_id ?? x.nota ?? '')) ?? possibili[0];
+    if (!prossima) {
+      setMessaggio('Non ho altre proposte per questo pasto con le preferenze attuali.');
+      return;
+    }
+    // finite le alternative si ricomincia dalla prima
+    setViste({ ...viste, [v.id]: possibili.some((x) => !scartate.includes(x.ricetta_id ?? x.nota ?? '')) ? scartate : [] });
+    void fai(() => modificaPiano(v.id, { ricetta_id: prossima.ricetta_id, nota: prossima.nota, alimenti: prossima.alimenti, porzioni: prossima.porzioni }));
+  }
+
+  function soloPerMe(v: VocePiano) {
+    if (!contesto || !voci) return;
+    const mia = alternativaPerMe(contesto, settimana, voci, v, utente);
+    if (!mia) {
+      setMessaggio('Non trovo un’alternativa adatta con le preferenze attuali.');
+      return;
+    }
+    void fai(() => aggiungiVoci(casa.id, [mia]));
+    if ((v.porzioni ?? 0) > 1) setDaRidurre(v);
   }
 
   async function generaLista() {
@@ -333,6 +426,47 @@ export default function Menu({ dati, casa, utente, settimana, setSettimana }: Pr
         </div>
       )}
 
+      <div className="azioni-menu">
+        <button className="contorno" disabled={attesa} onClick={() => void proponi()}>
+          Proponi settimana
+        </button>
+        <button className="secondario" onClick={() => vai('/preferenze')}>
+          Preferenze
+        </button>
+      </div>
+      {messaggio && (
+        <p className="stato-rete" role="status">
+          {messaggio}
+        </p>
+      )}
+      {(voci ?? []).some((v) => v.proposta && !v.cucinata_il) && (
+        <div className="avviso-riduci">
+          <p>Le voci segnate «proposta» le ho messe io. Puoi cambiarle una a una, tenerle o toglierle tutte.</p>
+          <div className="comandi">
+            <button
+              className="contorno"
+              disabled={attesa}
+              onClick={() => {
+                setMessaggio(null);
+                void fai(() => tieniProposta(casa.id, settimana, fine));
+              }}
+            >
+              Tieni tutto
+            </button>
+            <button
+              className="contorno rosso"
+              disabled={attesa}
+              onClick={() => {
+                setMessaggio(null);
+                void fai(() => annullaProposta(casa.id, settimana, fine));
+              }}
+            >
+              Annulla la proposta
+            </button>
+          </div>
+        </div>
+      )}
+
       {voci === null ? (
         !errore && <p className="nota">Carico il menù…</p>
       ) : (
@@ -356,6 +490,14 @@ export default function Menu({ dati, casa, utente, settimana, setSettimana }: Pr
                         const porzioni = v.porzioni ?? ricetta?.porzioni ?? casa.porzioni_predefinite;
                         const diChi = v.per_utente === null ? null : v.per_utente === utente ? 'solo per te' : `solo per ${persone[v.per_utente] ?? 'un’altra persona'}`;
                         const mia = v.per_utente === null || v.per_utente === utente;
+                        const alimenti = (v.alimenti ?? [])
+                          .map((a) => {
+                            const i = dati.ingredienti.find((x) => x.id === a.ingrediente_id);
+                            return i ? `${a.quantita.toLocaleString('it-IT')} ${i.unita_base === 'unita' ? (a.quantita === 1 ? 'pezzo' : 'pezzi') : i.unita_base} di ${i.nome}` : null;
+                          })
+                          .filter(Boolean)
+                          .join(', ');
+                        const lontano = !!contesto && !v.cucinata_il && lontanoDagliObiettivi(contesto, v, utente);
                         return (
                           <div key={v.id} className="pasto-voce">
                             <button
@@ -365,9 +507,11 @@ export default function Menu({ dati, casa, utente, settimana, setSettimana }: Pr
                               onClick={() => setAperta(aperta === v.id ? null : v.id)}
                             >
                               <span className="titolo">{ricetta?.titolo ?? v.nota ?? 'Ricetta non più disponibile'}</span>
-                              {(ricetta || v.cucinata_il || diChi) && (
+                              {(ricetta || v.cucinata_il || diChi || v.proposta || alimenti) && (
                                 <span className="dettagli">
-                                  {[diChi, ricetta && nomePorzioni(porzioni), v.cucinata_il && 'cucinata'].filter(Boolean).join(', ')}
+                                  {[v.proposta && !v.cucinata_il && 'proposta', diChi, ricetta && nomePorzioni(porzioni), alimenti, v.cucinata_il && 'cucinata']
+                                    .filter(Boolean)
+                                    .join(', ')}
                                 </span>
                               )}
                             </button>
@@ -379,7 +523,20 @@ export default function Menu({ dati, casa, utente, settimana, setSettimana }: Pr
                                     <Porzioni valore={porzioni} cambia={(n) => fai(() => modificaPiano(v.id, { porzioni: n }))} />
                                   </div>
                                 )}
+                                {lontano && (
+                                  <p className="nota">Anche cambiando la porzione, questo piatto resta lontano dai tuoi obiettivi per questo pasto.</p>
+                                )}
                                 <div className="comandi">
+                                  {v.proposta && !v.cucinata_il && mia && (
+                                    <button className="contorno" disabled={attesa} onClick={() => unAltra(v)}>
+                                      Un’altra
+                                    </button>
+                                  )}
+                                  {lontano && (
+                                    <button className="contorno" disabled={attesa} onClick={() => soloPerMe(v)}>
+                                      Proponimi un’alternativa solo per me
+                                    </button>
+                                  )}
                                   {ricetta && (
                                     <button className="contorno" onClick={() => vai(`/ricetta/${ricetta.id}`)}>
                                       Apri la ricetta

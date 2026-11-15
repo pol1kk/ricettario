@@ -20,9 +20,14 @@ export type VocePiano = {
   cucinata_il: string | null;
   /** null = per tutta la casa; altrimenti la voce è solo di quella persona */
   per_utente: string | null;
+  /** messa da "Proponi settimana": si distingue e si può annullare in blocco */
+  proposta?: boolean;
+  /** voce fatta di alimenti singoli ("fiocchi di latte e gallette"); il nome leggibile è in `nota` */
+  alimenti?: AlimentoVoce[] | null;
 };
+export type AlimentoVoce = { ingrediente_id: string; quantita: number };
 
-const CAMPI = 'id, data, pasto, ricetta_id, nota, porzioni, cucinata_il, per_utente';
+const CAMPI = 'id, data, pasto, ricetta_id, nota, porzioni, cucinata_il, per_utente, proposta, alimenti';
 
 export async function leggiPiano(casaId: string, dal: string, al: string): Promise<VocePiano[]> {
   const { data, error } = await supabase
@@ -53,8 +58,32 @@ export async function aggiungiAlPiano(
   if (error) throw new Error(error.message);
 }
 
-export async function modificaPiano(id: string, campi: Partial<Pick<VocePiano, 'porzioni' | 'cucinata_il' | 'per_utente'>>): Promise<void> {
+export async function modificaPiano(id: string, campi: Partial<Pick<VocePiano, 'porzioni' | 'cucinata_il' | 'per_utente' | 'ricetta_id' | 'nota' | 'alimenti' | 'proposta'>>): Promise<void> {
   const { error } = await supabase.from('piano_pasti').update(campi).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Una voce da inserire nel menù, come la prepara "Proponi settimana". */
+export type NuovaVocePiano = Pick<VocePiano, 'data' | 'pasto' | 'ricetta_id' | 'nota' | 'porzioni' | 'per_utente'> & {
+  alimenti: AlimentoVoce[] | null;
+  proposta: boolean;
+};
+
+export async function aggiungiVoci(casaId: string, voci: NuovaVocePiano[]): Promise<void> {
+  if (voci.length === 0) return;
+  const { error } = await supabase.from('piano_pasti').insert(voci.map((v) => ({ casa_id: casaId, ...v })));
+  if (error) throw new Error(error.message);
+}
+
+/** Toglie tutte le voci proposte (e non ancora cucinate) di un intervallo di giorni. */
+export async function annullaProposta(casaId: string, dal: string, al: string): Promise<void> {
+  const { error } = await supabase.from('piano_pasti').delete().eq('casa_id', casaId).eq('proposta', true).is('cucinata_il', null).gte('data', dal).lte('data', al);
+  if (error) throw new Error(error.message);
+}
+
+/** Le voci proposte diventano voci normali: non si distinguono più e "Annulla la proposta" non le tocca. */
+export async function tieniProposta(casaId: string, dal: string, al: string): Promise<void> {
+  const { error } = await supabase.from('piano_pasti').update({ proposta: false }).eq('casa_id', casaId).eq('proposta', true).gte('data', dal).lte('data', al);
   if (error) throw new Error(error.message);
 }
 
