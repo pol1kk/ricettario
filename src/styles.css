@@ -3124,3 +3124,87 @@ button.altre {
 .scarico .comandi button {
   width: auto;
 }
+
+/* ---------- dispensa: uso rapido e ricette per ciò che scade ---------- */
+.uso-rapido {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0 0.2rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.uso-rapido label {
+  flex: 1;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.uso-rapido .campo-unita input {
+  width: 4.6rem;
+}
+
+.uso-rapido .campo-unita span {
+  width: auto;
+  min-width: 1.4rem;
+}
+
+.uso-rapido button {
+  width: auto;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.da-usare {
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1.5px solid var(--linea);
+}
+
+.da-usare h3 {
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: var(--tenue);
+}
+
+.da-usare ul {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+}
+
+.da-usare button {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.4rem 0;
+  text-align: left;
+}
+
+.da-usare .titolo {
+  display: block;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.da-usare .dettagli {
+  display: block;
+  color: var(--tenue);
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+.aggiungi-diario > .scansiona {
+  margin-top: 1.25rem;
+}
+
+.aggiungi-diario > .scansiona + .viste {
+  margin-top: 0.75rem;
+}
+
+.aggiungi-diario .modulo > .spunta {
+  font-weight: 400;
+}

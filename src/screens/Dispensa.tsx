@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { formattaQuantita, leggiCache, scriviCache, type Casa, type Dati, type Ingrediente } from '../lib/dati';
+import { consiglia } from '../lib/consiglio';
 import { leggiNumero } from '../lib/diario';
 import {
   POSIZIONI,
@@ -10,11 +11,13 @@ import {
   leggiDispensa,
   mascheraData,
   modificaConfezione,
+  scalaDispensa,
   type Confezione,
   type Posizione,
   type StatoScorta,
 } from '../lib/dispensa';
 import { aggiungi, usaLista } from '../lib/lista';
+import { vai } from '../lib/rotta';
 import AggiungiADispensa from './AggiungiADispensa';
 import { IconaCodice } from './ModuloConfezione';
 import SchedeDispensa from './SchedeDispensa';
@@ -106,6 +109,30 @@ function ModificaConfezione({
   );
 }
 
+/** "Ne ho usato…": scala una quantità dall'ingrediente senza passare da una ricetta, partendo da ciò che scade prima. */
+function UsoRapido({ ingrediente, attesa, usa }: { ingrediente: Ingrediente; attesa: boolean; usa: (quantita: number) => void }) {
+  const [testo, setTesto] = useState('');
+  const q = leggiNumero(testo);
+  return (
+    <form
+      className="uso-rapido"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (q) usa(q);
+      }}
+    >
+      <label htmlFor={`uso-${ingrediente.id}`}>Ne ho usato</label>
+      <span className="campo-unita">
+        <input id={`uso-${ingrediente.id}`} inputMode="decimal" value={testo} onChange={(e) => setTesto(e.target.value)} />
+        <span>{UNITA[ingrediente.unita_base]}</span>
+      </span>
+      <button type="submit" className="contorno" disabled={attesa || !q}>
+        Scala
+      </button>
+    </form>
+  );
+}
+
 export default function Dispensa({ dati, casa, ricarica }: { dati: Dati; casa: Casa; ricarica: () => Promise<void> }) {
   const lista = usaLista(casa.id);
   const [confezioni, setConfezioni] = useState<Confezione[] | null>(() => leggiCache<Confezione[]>('dispensa'));
@@ -159,6 +186,21 @@ export default function Dispensa({ dati, casa, ricarica }: { dati: Dati; casa: C
       })
       .sort((a, b) => (a.prima ?? lontano).localeCompare(b.prima ?? lontano) || a.nome.localeCompare(b.nome, 'it'));
   }, [confezioni, filtro, catalogo]);
+
+  // per ciò che scade: le ricette che lo usano, dalla più fattibile con quello che c'è in casa
+  const ricettePerIngrediente = useMemo(() => {
+    const ordinate = consiglia(dati.ricette, confezioni ?? [], [], null, {
+      pasto: null,
+      minuti: null,
+      tag: [],
+      testo: '',
+      persone: casa.porzioni_predefinite,
+      obiettivi: false,
+      dispensa: true,
+      scadenze: true,
+    });
+    return (id: string) => ordinate.filter((c) => c.ricetta.ingredienti.some((i) => i.ingrediente_id === id && !i.facoltativo)).slice(0, 3);
+  }, [dati.ricette, confezioni, casa.porzioni_predefinite]);
 
   if (aggiunta) {
     return (
@@ -277,6 +319,31 @@ export default function Dispensa({ dati, casa, ricarica }: { dati: Dati; casa: C
                           </div>
                         );
                       })}
+                      {r.ingrediente && !aStato && (
+                        <UsoRapido
+                          key={totale}
+                          ingrediente={r.ingrediente}
+                          attesa={attesa}
+                          usa={(quantita) => fai(() => scalaDispensa(casa.id, null, [{ ingrediente_id: r.id, quantita }]))}
+                        />
+                      )}
+                      {scadenza && scadenza.urgenza !== 'lontano' && ricettePerIngrediente(r.id).length > 0 && (
+                        <div className="da-usare">
+                          <h3>Ricette per usarlo</h3>
+                          <ul>
+                            {ricettePerIngrediente(r.id).map((c) => (
+                              <li key={c.ricetta.id}>
+                                <button className="secondario" onClick={() => vai(`/ricetta/${c.ricetta.id}`)}>
+                                  <span className="titolo">{c.ricetta.titolo}</span>
+                                  <span className="dettagli">
+                                    {c.mancanti.length === 0 ? 'hai tutto in casa' : c.mancanti.length === 1 ? `manca ${c.mancanti[0].nome}` : `mancano ${c.mancanti.length} ingredienti`}
+                                  </span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       {r.ingrediente &&
                         (inLista.has(r.id) || messo === r.id ? (
                           <p className="nota">È nella lista della spesa.</p>

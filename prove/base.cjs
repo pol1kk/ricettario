@@ -164,6 +164,13 @@ async function crea(opzioni = {}) {
       }
     }
     stato.lista = stato.lista.filter((x) => x.origine !== 'menu');
+    // come la funzione vera: si compra solo quello che manca rispetto alla dispensa (escluso ciò che è scaduto)
+    for (const [id, voce] of totali) {
+      const inCasa = stato.dispensa.filter((x) => x.ingrediente_id === id && !x.esaurita_il && x.quantita && (!x.scadenza || x.scadenza >= giorni(0)))
+        .reduce((t, x) => t + x.quantita, 0);
+      if (voce[0] - inCasa <= 0) totali.delete(id);
+      else voce[0] -= inCasa;
+    }
     for (const [ingrediente_id, [quantita, unita]] of totali) stato.lista.push({ id: nuovoId('l'), ingrediente_id, testo: null, quantita, unita, spuntata: false, origine: 'menu' });
     return r.fulfill(j(totali.size));
   });

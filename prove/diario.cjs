@@ -12,6 +12,9 @@ module.exports = async function diario() {
       { id: 'p901', data: oggi, pasto: 'pranzo', ricetta_id: ID.tamago, nota: null, porzioni: 2, cucinata_il: null },
       { id: 'p902', data: oggi, pasto: 'cena', ricetta_id: null, nota: 'Cena fuori', porzioni: null, cucinata_il: null },
     );
+    stato.prodotti.push({ id: 'prf', codice_barre: '8005550001112', nome: 'Fiocchi di latte Prova', marca: 'Prova', formato_quantita: 175, formato_unita: 'g',
+      ingrediente_id: 'i7', posizione_predefinita: 'frigo', kcal_100: 90, proteine_100: 12.5, carboidrati_100: 3, grassi_100: 3 });
+    stato.dispensa.push({ id: 'xf', ingrediente_id: 'i7', prodotto_id: 'prf', quantita: 400, stato: null, scadenza: null, posizione: 'frigo' });
     await t.entra();
     await p.waitForSelector('.diario .proposta');
 
@@ -46,6 +49,25 @@ module.exports = async function diario() {
     await p.fill('#quanto', '2');
     await p.click('button[type=submit]');
     await p.waitForSelector('.pasto-diario .riga-voce:has-text("Uova")');
+
+    // prodotto confezionato dal codice a barre (qui scritto a mano: la fotocamera non c'è), collegato a un
+    // ingrediente che è in dispensa: entra con i valori del prodotto e viene scalato
+    await p.click('[aria-label="Aggiungi a merenda del pomeriggio"]');
+    await p.click('text=Scansiona un prodotto confezionato');
+    await p.fill('#codice', '8005550001112');
+    await p.click('.codice-a-mano button');
+    await p.waitForSelector('#quanto');
+    assert.strictEqual(await p.locator('.aggiungi-diario h1').innerText(), 'Fiocchi di latte Prova');
+    assert.strictEqual(await p.inputValue('#quanto'), '175', 'parte dal formato della confezione');
+    assert.match(await p.locator('.anteprima').innerText(), /158 kcal/);
+    assert.match(await p.locator('.modulo .spunta').innerText(), /ne hai 400 g/);
+    await t.foto('diario-prodotto', false);
+    await p.click('button[type=submit]');
+    await p.waitForSelector('.pasto-diario .riga-voce:has-text("Fiocchi di latte Prova")');
+    assert.strictEqual(stato.dispensa.find((x) => x.id === 'xf').quantita, 225, 'scalato dalla dispensa');
+    await p.click('.riga-voce:has-text("Fiocchi di latte Prova")');
+    await p.click('text=Togli dal diario');
+    await p.waitForFunction(() => !/Fiocchi di latte Prova/.test(document.querySelector('.diario')?.textContent ?? ''));
 
     // una nota del menù apre la voce a mano con il nome già scritto
     await p.click('.proposta:has-text("Cena fuori") button');
@@ -105,7 +127,7 @@ module.exports = async function diario() {
     await p.waitForSelector('.ricette a');
     assert.strictEqual(await p.evaluate(() => location.hash), '#/ricette');
 
-    assert.strictEqual(chiamate.filter((c) => c[0] === 'diario+').length, 5);
+    assert.strictEqual(chiamate.filter((c) => c[0] === 'diario+').length, 6);
     assert.deepStrictEqual(t.errori, [], 'nessun errore JavaScript');
   } finally {
     await t.chiudi();

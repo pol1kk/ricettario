@@ -107,7 +107,7 @@ fotografia del momento), `obiettivi` (una riga per persona).
 | `correggi_ricetta(ricetta, json)` | correzioni dalla scheda |
 | `stima_valori_ricetta(ricetta)` | valori per porzione stimati dagli ingredienti |
 | `unisci_tag`, `invita_in_casa`, `persone_casa` | gestione tag e persone |
-| `genera_lista_spesa(casa, dal, al)` | rifà le voci di origine `menu` dalla settimana, lascia le manuali |
+| `genera_lista_spesa(casa, dal, al)` | rifà le voci di origine `menu` dalla settimana, lascia le manuali; compra solo ciò che manca rispetto alla dispensa (lo scaduto non conta) |
 | `metti_in_dispensa(casa, json)` | confezioni + movimento + toglie la voce dalla lista |
 | `chiudi_confezione(dispensa, motivo)` | confezione finita o buttata |
 | `scala_dispensa(casa, json)` | toglie le quantità usate dalle confezioni che scadono prima, con i movimenti |
@@ -130,6 +130,11 @@ fotografia del momento), `obiettivi` (una riga per persona).
 - `ScaricoDispensa.tsx` propone di togliere dalla dispensa gli ingredienti usati, con quantità correggibili:
   compare a fine modalità cucina e nel diario dopo "L'ho mangiato" su una voce del menù non ancora cucinata.
   Non mostra nulla se in dispensa non c'è nessuno degli ingredienti.
+- In dispensa, dentro la riga di un ingrediente: "Ne ho usato" (scarico senza ricetta) e, per ciò che è scaduto o
+  scade entro 3 giorni, "Ricette per usarlo" (ancora `consiglia()`, con `pasto: null`).
+- In "Cosa hai mangiato" (`AggiungiAlDiario.tsx`): "Scansiona un prodotto confezionato". I valori vengono, nell'ordine,
+  dal prodotto già collegato, dall'ingrediente a cui è collegato, da Open Food Facts; se mancano si passa alla voce a mano.
+  Per prodotti e alimenti che sono in dispensa compare la casella "Toglilo dalla dispensa".
 
 ## Pubblicazione e copie
 

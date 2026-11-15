@@ -50,6 +50,16 @@ module.exports = async function dispensa() {
     await p.click('.riga-confezione >> nth=1');
     await p.click('text=È finita');
     await p.waitForFunction(() => document.querySelectorAll('.riga-confezione').length === 1);
+    // "Ne ho usato": scala dalla confezione rimasta
+    await p.fill('.uso-rapido input', '2');
+    await p.click('.uso-rapido button');
+    await p.waitForFunction(() => /^2$/.test(document.querySelector('.scorta[aria-expanded=true] .quanto')?.textContent ?? ''));
+    assert.ok(chiamate.some((c) => c[0] === 'scala' && c[1] === 'uso'), 'scarico senza ricetta');
+    // le uova scadono a Natale: nessun suggerimento; i ceci scaduti propongono la ricetta che li usa
+    await p.click('.scorta:has-text("Ceci cotti")');
+    assert.match(await p.locator('.da-usare').innerText(), /Ricette per usarlo[\s\S]*Riso con zucchine/);
+    await t.foto('dispensa-da-usare', false);
+    await p.click('.scorta:has-text("Uova")');
     await p.click('text=Metti nella lista della spesa');
     await p.waitForSelector('.confezioni .nota');
     await p.click('.filtro:has-text("Frigo")');

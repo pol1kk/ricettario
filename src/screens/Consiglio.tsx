@@ -72,7 +72,7 @@ export default function Consiglio({ dati, casa }: { dati: Dati; casa: Casa }) {
   const obiettivoOggi = obiettivoDel(obiettivi, giorno);
   const conObiettivi = haObiettivo(obiettivoOggi);
   const meta = useMemo(
-    () => (conObiettivi ? obiettivoDelPasto(obiettivoOggi, somma(diario.filter((v) => v.data === giorno)), richieste.pasto) : null),
+    () => (conObiettivi ? obiettivoDelPasto(obiettivoOggi, somma(diario.filter((v) => v.data === giorno)), richieste.pasto ?? 'pranzo') : null),
     // obiettivoOggi è ricalcolato a ogni giro: dipende da obiettivi e giorno
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [obiettivi, diario, giorno, richieste.pasto, conObiettivi],
@@ -88,7 +88,8 @@ export default function Consiglio({ dati, casa }: { dati: Dati; casa: Casa }) {
     setRichieste((r) => ({ ...r, ...campi }));
     setQuante(A_GRUPPI);
   };
-  const nomePasto = PASTI.find((p) => p.valore === richieste.pasto)!.nome.toLowerCase();
+  const pasto = richieste.pasto ?? 'pranzo';
+  const nomePasto = PASTI.find((p) => p.valore === pasto)!.nome.toLowerCase();
   const segna = (id: string, cosa: 'diario' | 'lista') =>
     setFatte((f) => ({ ...f, [id]: f[id] && f[id] !== cosa ? 'entrambe' : cosa }));
 
@@ -97,7 +98,7 @@ export default function Consiglio({ dati, casa }: { dati: Dati; casa: Casa }) {
     try {
       await aggiungiVoce({
         data: giorno,
-        pasto: richieste.pasto,
+        pasto,
         nome: p.ricetta.titolo,
         ricetta_id: p.ricetta.id,
         ingrediente_id: null,
@@ -134,7 +135,7 @@ export default function Consiglio({ dati, casa }: { dati: Dati; casa: Casa }) {
         <div className="due-campi">
           <div>
             <label htmlFor="c-pasto">Pasto</label>
-            <select id="c-pasto" value={richieste.pasto} onChange={(e) => cambia({ pasto: e.target.value as Pasto })}>
+            <select id="c-pasto" value={pasto} onChange={(e) => cambia({ pasto: e.target.value as Pasto })}>
               {PASTI.map((p) => (
                 <option key={p.valore} value={p.valore}>
                   {p.nome}

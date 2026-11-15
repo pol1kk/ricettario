@@ -332,7 +332,7 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
             <p className="nota">
               {daComprare === 0
                 ? 'Aggiungi almeno una ricetta alla settimana per generare la lista.'
-                : 'Somma gli ingredienti di questa settimana, esclusi i pasti già cucinati. Sostituisce le voci generate in precedenza; quelle aggiunte a mano restano.'}
+                : 'Somma gli ingredienti di questa settimana, esclusi i pasti già cucinati, e toglie quello che hai già in dispensa. Sostituisce le voci generate in precedenza; quelle aggiunte a mano restano.'}
             </p>
           </section>
         </>

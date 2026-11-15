@@ -7,7 +7,8 @@ import { CAMPI_VALORI, moltiplica, valoriRicetta, type Valori, type VoceDiario }
 import { PASTI, type Pasto } from './piano';
 
 export type Richieste = {
-  pasto: Pasto;
+  /** null = non importa per quale pasto (usato dai suggerimenti in dispensa) */
+  pasto: Pasto | null;
   /** tempo massimo in minuti; null = qualsiasi */
   minuti: number | null;
   /** id dei tag richiesti: la ricetta deve averli tutti */
@@ -87,7 +88,7 @@ export function consiglia(
   const dispensa = riassumiDispensa(confezioni);
   const dispensaVuota = dispensa.size === 0;
   const parole = semplifica(richieste.testo).split(/\s+/).filter((p) => p.length > 1 && !PAROLE_VUOTE.has(p));
-  const tagDelPasto = PASTI.find((p) => p.valore === richieste.pasto)!.tag;
+  const tagDelPasto = PASTI.find((p) => p.valore === richieste.pasto)?.tag;
   const principale = richieste.pasto === 'pranzo' || richieste.pasto === 'cena';
   const giorniFa = new Map<string, number>();
   for (const v of recenti) {
@@ -174,7 +175,7 @@ export function consiglia(
     const nomiTag = ricetta.tag.map((t) => t.nome);
     if (tagDelPasto && nomiTag.includes(tagDelPasto)) punteggio += 15;
     if (principale && nomiTag.some((n) => TAG_LEGGERI.includes(n)) && !nomiTag.some((n) => ['primo', 'secondo', 'piatto unico'].includes(n))) punteggio -= 25;
-    if (!principale && tagDelPasto && !nomiTag.includes(tagDelPasto)) punteggio -= 15;
+    if (richieste.pasto && !principale && tagDelPasto && !nomiTag.includes(tagDelPasto)) punteggio -= 15;
 
     // ---- varietà ----
     const fa = giorniFa.get(ricetta.id);

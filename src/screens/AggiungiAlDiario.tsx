@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { formattaValore, semplifica, type Dati, type Ingrediente, type Ricetta } from '../lib/dati';
+import { formattaQuantita, formattaValore, semplifica, type Casa, type Dati, type Ingrediente, type Ricetta } from '../lib/dati';
 import { giornoRelativo } from '../lib/date';
 import {
   aggiungiVoce,
   leggiNumero,
   leggiRecenti,
+  moltiplica,
   nomeQuantita,
   pesoPorzione,
   valoriAlimento,
@@ -14,17 +15,32 @@ import {
   type Valori,
   type VoceDiario,
 } from '../lib/diario';
+import {
+  cercaProdotto,
+  cercaSuOpenFoodFacts,
+  leggiDispensa,
+  riassumiDispensa,
+  scalaDispensa,
+  type Confezione,
+} from '../lib/dispensa';
 import { PASTI, type Pasto } from '../lib/piano';
 import { Miniatura } from './Copertina';
+import { IconaCodice } from './ModuloConfezione';
+import Scanner from './Scanner';
 import { CampiValori, Sintesi, TESTI_VUOTI } from './ValoriDiario';
 
 type Scheda = 'recenti' | 'ricette' | 'alimenti' | 'mano';
-type Scelta = { tipo: 'ricetta'; ricetta: Ricetta } | { tipo: 'alimento'; alimento: Ingrediente };
+type Scelta =
+  | { tipo: 'ricetta'; ricetta: Ricetta }
+  | { tipo: 'alimento'; alimento: Ingrediente }
+  /** prodotto confezionato letto dal codice a barre: valori per 100 g o ml; `ingrediente` c'è se il codice era già collegato */
+  | { tipo: 'prodotto'; nome: string; unita: 'g' | 'ml'; per100: Valori; formato: number | null; ingrediente: Ingrediente | null };
 
 const NOMI_UNITA: Record<UnitaDiario, string> = { porzioni: 'porzioni', g: 'g', ml: 'ml', unita: 'pezzi' };
 
 export default function AggiungiAlDiario({
   dati,
+  casa,
   data,
   pasto,
   nomeIniziale,
@@ -32,6 +48,7 @@ export default function AggiungiAlDiario({
   chiudi,
 }: {
   dati: Dati;
+  casa: Casa;
   data: string;
   pasto: Pasto;
   /** quando si conferma una nota del menù: apre la voce a mano con il nome già scritto */
@@ -49,10 +66,19 @@ export default function AggiungiAlDiario({
   const [testi, setTesti] = useState(TESTI_VUOTI);
   const [attesa, setAttesa] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
+  const [scanner, setScanner] = useState(false);
+  const [confezioni, setConfezioni] = useState<Confezione[]>([]);
+  const [scala, setScala] = useState(true);
 
   const nomePasto = PASTI.find((p) => p.valore === pasto)!.nome.toLowerCase();
   const catalogo = useMemo(() => new Map(dati.ingredienti.map((i) => [i.id, i])), [dati.ingredienti]);
   const parole = useMemo(() => semplifica(testo).split(/\s+/).filter(Boolean), [testo]);
+
+  useEffect(() => {
+    // serve solo a sapere se ciò che si mangia è in dispensa, per proporre di scalarlo
+    leggiDispensa(casa.id).then(setConfezioni, () => setConfezioni([]));
+  }, [casa.id]);
+  const inDispensa = useMemo(() => riassumiDispensa(confezioni), [confezioni]);
 
   useEffect(() => {
     leggiRecenti().then(
@@ -71,11 +97,13 @@ export default function AggiungiAlDiario({
     [dati.ingredienti, parole],
   );
 
-  async function salva(voce: Omit<NuovaVoce, 'data' | 'pasto'>) {
+  async function salva(voce: Omit<NuovaVoce, 'data' | 'pasto'>, daScalare?: { ingrediente_id: string; quantita: number }) {
     setAttesa(true);
     setErrore(null);
     try {
       await aggiungiVoce({ ...voce, data, pasto });
+      // la voce è già nel diario: se lo scarico fallisce non si blocca nulla, la dispensa si corregge a mano
+      if (daScalare) await scalaDispensa(casa.id, null, [daScalare]).catch(() => undefined);
       chiudi(true);
     } catch (e) {
       setAttesa(false);
@@ -86,9 +114,48 @@ export default function AggiungiAlDiario({
   function scegli(s: Scelta) {
     setScelta(s);
     setInGrammi(false);
-    setQuantita(s.tipo === 'ricetta' || s.alimento.unita_base === 'unita' ? '1' : '100');
+    setScala(true);
+    setQuantita(
+      s.tipo === 'prodotto' ? String(s.formato ?? 100) : s.tipo === 'ricetta' || s.alimento.unita_base === 'unita' ? '1' : '100',
+    );
     window.scrollTo(0, 0);
   }
+
+  async function codiceLetto(codice: string) {
+    setScanner(false);
+    setAttesa(true);
+    setErrore(null);
+    try {
+      const noto = await cercaProdotto(casa.id, codice);
+      const ingrediente = (noto && dati.ingredienti.find((i) => i.id === noto.ingrediente_id)) || null;
+      // prima i valori del prodotto vero, poi quelli dell'ingrediente a cui è collegato, poi l'archivio pubblico
+      const trovato = noto ?? (await cercaSuOpenFoodFacts(codice).catch(() => null));
+      const fonte = trovato && trovato.kcal_100 !== null ? trovato : ingrediente && ingrediente.unita_base !== 'unita' && ingrediente.kcal_100 !== null ? ingrediente : null;
+      if (!trovato || !fonte) {
+        setNome(trovato?.nome ?? '');
+        setScheda('mano');
+        setErrore(
+          trovato
+            ? 'Di questo prodotto non conosco i valori nutrizionali: scrivili qui sotto dall’etichetta.'
+            : 'Non trovo questo codice: scrivi qui sotto cosa hai mangiato e i valori dall’etichetta.',
+        );
+      } else {
+        scegli({
+          tipo: 'prodotto',
+          nome: trovato.nome || (ingrediente ? ingrediente.nome.charAt(0).toUpperCase() + ingrediente.nome.slice(1) : 'Prodotto'),
+          unita: trovato.formato_unita === 'ml' || (!trovato.formato_unita && ingrediente?.unita_base === 'ml') ? 'ml' : 'g',
+          per100: { kcal: fonte.kcal_100, proteine_g: fonte.proteine_100, carboidrati_g: fonte.carboidrati_100, grassi_g: fonte.grassi_100 },
+          formato: trovato.formato_quantita && trovato.formato_quantita <= 500 ? trovato.formato_quantita : null,
+          ingrediente,
+        });
+      }
+    } catch (e) {
+      setErrore(`Non sono riuscito a cercare il prodotto: ${(e as Error).message}. Controlla la connessione.`);
+    }
+    setAttesa(false);
+  }
+
+  if (scanner) return <Scanner trovato={codiceLetto} chiudi={() => setScanner(false)} />;
 
   const indietro = (
     <div className="barra">
@@ -109,8 +176,16 @@ export default function AggiungiAlDiario({
     let titolo: string;
     let aiuto: string | null = null;
     let pesoUna: number | null = null;
+    /** ingrediente da cui scalare in dispensa, se ciò che si mangia è lì e si misura allo stesso modo */
+    let daDispensa: Ingrediente | null = null;
 
-    if (scelta.tipo === 'ricetta') {
+    if (scelta.tipo === 'prodotto') {
+      titolo = scelta.nome;
+      unita = scelta.unita;
+      if (q) valori = moltiplica(scelta.per100, q / 100);
+      aiuto = `${formattaValore(scelta.per100.kcal ?? 0)} kcal per 100 ${scelta.unita}.`;
+      if (scelta.ingrediente && scelta.ingrediente.unita_base === scelta.unita) daDispensa = scelta.ingrediente;
+    } else if (scelta.tipo === 'ricetta') {
       const r = scelta.ricetta;
       titolo = r.titolo;
       pesoUna = pesoPorzione(r, catalogo);
@@ -121,6 +196,7 @@ export default function AggiungiAlDiario({
       const a = scelta.alimento;
       titolo = a.nome.charAt(0).toUpperCase() + a.nome.slice(1);
       unita = a.unita_base;
+      daDispensa = a;
       if (q) valori = valoriAlimento(a, q);
       aiuto =
         a.unita_base === 'unita'
@@ -128,18 +204,22 @@ export default function AggiungiAlDiario({
           : `${formattaValore(a.kcal_100!)} kcal per 100 ${a.unita_base}.`;
     }
 
+    const haInCasa = daDispensa && !daDispensa.base ? (inDispensa.get(daDispensa.id)?.quantita ?? 0) : 0;
     const invia = (e: FormEvent) => {
       e.preventDefault();
       if (!q || !valori) return;
-      void salva({
-        nome: titolo,
-        ricetta_id: scelta.tipo === 'ricetta' ? scelta.ricetta.id : null,
-        ingrediente_id: scelta.tipo === 'alimento' ? scelta.alimento.id : null,
-        piano_id: null,
-        quantita: q,
-        unita,
-        ...valori,
-      });
+      void salva(
+        {
+          nome: titolo,
+          ricetta_id: scelta.tipo === 'ricetta' ? scelta.ricetta.id : null,
+          ingrediente_id: scelta.tipo === 'alimento' ? scelta.alimento.id : scelta.tipo === 'prodotto' ? (scelta.ingrediente?.id ?? null) : null,
+          piano_id: null,
+          quantita: q,
+          unita,
+          ...valori,
+        },
+        daDispensa && haInCasa > 0 && scala ? { ingrediente_id: daDispensa.id, quantita: q } : undefined,
+      );
     };
 
     return (
@@ -182,6 +262,12 @@ export default function AggiungiAlDiario({
             <span>{NOMI_UNITA[unita]}</span>
           </span>
           {aiuto && <p className="nota">{aiuto}</p>}
+          {daDispensa && haInCasa > 0 && (
+            <label className="spunta">
+              <input type="checkbox" checked={scala} onChange={(e) => setScala(e.target.checked)} />
+              Toglilo dalla dispensa (ne hai {formattaQuantita(haInCasa, daDispensa.unita_base, 1, false)})
+            </label>
+          )}
           <p className="anteprima grande">{valori ? <Sintesi valori={valori} /> : 'Scrivi una quantità'}</p>
           {errore && (
             <p role="alert" className="errore">
@@ -230,6 +316,11 @@ export default function AggiungiAlDiario({
           {giornoRelativo(data)}, {nomePasto}
         </p>
       </header>
+
+      <button className="contorno scansiona" disabled={attesa} onClick={() => setScanner(true)}>
+        <IconaCodice />
+        {attesa ? 'Cerco il prodotto…' : 'Scansiona un prodotto confezionato'}
+      </button>
 
       <div className="viste quattro" role="group" aria-label="Da dove scegliere">
         {SCHEDE.map(([s, n]) => (

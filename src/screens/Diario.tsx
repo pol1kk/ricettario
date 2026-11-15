@@ -298,6 +298,7 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
     return (
       <AggiungiAlDiario
         dati={dati}
+        casa={casa}
         data={giorno}
         pasto={aggiunta.pasto}
         nomeIniziale={aggiunta.nome}

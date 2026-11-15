@@ -31,10 +31,16 @@ export type Prodotto = {
   formato_unita: Unita | null;
   ingrediente_id: string;
   posizione_predefinita: Posizione;
+  /** valori per 100 g/ml del prodotto vero, se l'archivio li aveva */
+  kcal_100: number | null;
+  proteine_100: number | null;
+  carboidrati_100: number | null;
+  grassi_100: number | null;
 };
 
 const CAMPI = 'id, ingrediente_id, prodotto_id, quantita, stato, scadenza, posizione, prodotti ( nome, marca )';
-const CAMPI_PRODOTTO = 'id, codice_barre, nome, marca, formato_quantita, formato_unita, ingrediente_id, posizione_predefinita';
+const CAMPI_PRODOTTO =
+  'id, codice_barre, nome, marca, formato_quantita, formato_unita, ingrediente_id, posizione_predefinita, kcal_100, proteine_100, carboidrati_100, grassi_100';
 
 export async function leggiDispensa(casaId: string): Promise<Confezione[]> {
   const { data, error } = await supabase.from('dispensa').select(CAMPI).eq('casa_id', casaId).is('esaurita_il', null).order('aggiunto_il');
