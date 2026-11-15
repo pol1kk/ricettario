@@ -83,14 +83,14 @@ Schema `public`; funzioni di servizio in `private`. I file in `supabase/migratio
 
 | Tabella | Contenuto |
 |---|---|
-| `case`, `membri`, `inviti` | la casa, chi ne fa parte, inviti per email (collegati alla registrazione) |
+| `case`, `membri`, `inviti` | la casa, chi ne fa parte (`membri.nome` è il nome mostrato agli altri, si cambia con `imposta_nome`), inviti per email |
 | `reparti` | reparti del supermercato, con `ordine` |
 | `ingredienti` | catalogo: `nome` (minuscolo, unico), `unita_base` (`g`, `ml`, `unita`), `tracciamento` (`quantita` o `stato`), `icona` (emoji), valori per 100 g/ml, `grammi_per_unita` |
 | `alias_ingredienti` | altri nomi dello stesso ingrediente |
 | `ricette` | titolo, reel, porzioni, tempi, `passaggi` (jsonb `[{testo, gruppo?}]`), valori **per porzione**, `valori_fonte` (`dichiarati` o `stimati`), `da_verificare` |
 | `ricetta_ingredienti` | quantità nell'unità base dell'ingrediente; quantità nulla = q.b.; `gruppo`, `facoltativo` |
 | `tag`, `ricetta_tag` | tag a gruppi; quello con `automatico = true` ("veloce") lo calcola l'app dal tempo |
-| `piano_pasti` | menù: giorno, pasto, ricetta **o** nota, porzioni, `cucinata_il` |
+| `piano_pasti` | menù: giorno, pasto, ricetta **o** nota, porzioni, `cucinata_il`, `per_utente` (nullo = per tutta la casa, altrimenti voce personale) |
 | `lista_spesa`, `voci_ricordate` | lista (origine `menu`, `manuale`, `scorta`) e reparto ricordato per le voci scritte a mano |
 | `prodotti` | un codice a barre collegato a un ingrediente, con formato e valori |
 | `dispensa` | **una riga per confezione**; `quantita` oppure `stato`; `scadenza`; `posizione`; `esaurita_il` quando finisce |
@@ -119,6 +119,16 @@ fotografia del momento), `obiettivi` (una riga per persona).
   nell'app compaiono come `base: true`.
 - *Una sola unità per ingrediente.* Tutte le quantità di un ingrediente (ricette, lista, dispensa) sono nella
   sua `unita_base`: è questo che permette di sommarle e confrontarle.
+
+## Menù condiviso e voci personali
+
+- Il menù è uno solo per la casa. Una voce con `per_utente` è di una sola persona: resta leggibile da tutti
+  (gli ingredienti vanno nella lista comune) ma `Menu.tsx` la mostra agli altri solo con l'interruttore
+  "Mostra anche le voci personali degli altri".
+- `vociPerMe()` in `lib/piano.ts` è la regola unica su cosa riguarda una persona: le sue voci e quelle comuni;
+  se in un pasto ha una voce sua, quelle comuni di quel pasto non la riguardano più. La usa il Diario per le proposte.
+- Stesso piatto, porzioni diverse: nel Diario la proposta di una voce del menù indica la porzione più adatta agli
+  obiettivi di chi guarda (`porzioneConsigliata()` in `lib/consiglio.ts`), ed è quella che "L'ho mangiato" registra.
 
 ## Consiglio di un pasto e scarico
 

@@ -2,29 +2,47 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { supabase } from '../lib/supabase';
 import { formattaMinuti, formattaValore, leggiCache, scriviCache, semplifica, type Casa, type Dati, type Ricetta } from '../lib/dati';
 import { lunedi, nomeGiorno, nomeSettimana, oggi, piuGiorni } from '../lib/date';
-import { PASTI, aggiungiAlPiano, leggiPiano, modificaPiano, nomePorzioni, togliDalPiano, type Pasto, type VocePiano } from '../lib/piano';
+import {
+  PASTI,
+  aggiungiAlPiano,
+  leggiPersone,
+  leggiPiano,
+  modificaPiano,
+  nomePorzioni,
+  togliDalPiano,
+  type Pasto,
+  type VocePiano,
+} from '../lib/piano';
 import { vai, vaiAScheda } from '../lib/rotta';
 import { Miniatura } from './Copertina';
 import Porzioni from './Porzioni';
 
-type Props = { dati: Dati; casa: Casa; settimana: string; setSettimana: (s: string) => void };
+type Props = { dati: Dati; casa: Casa; utente: string; settimana: string; setSettimana: (s: string) => void };
+
+const eMerenda = (p: Pasto) => p === 'merenda_mattino' || p === 'merenda_pomeriggio';
 
 function ScegliPasto({
   dati,
   casa,
+  utente,
   data,
   pasto,
+  soloPerMe,
   chiudi,
 }: {
   dati: Dati;
   casa: Casa;
+  utente: string;
   data: string;
   pasto: Pasto;
+  /** come parte la scelta "per chi": le merende di solito sono personali, i pasti principali comuni */
+  soloPerMe: boolean;
   chiudi: (aggiunto: boolean) => void;
 }) {
   const [testo, setTesto] = useState('');
   const [nota, setNota] = useState('');
-  const [porzioni, setPorzioni] = useState(casa.porzioni_predefinite);
+  const [perMe, setPerMe] = useState(soloPerMe);
+  const [porzioni, setPorzioni] = useState(soloPerMe ? 1 : casa.porzioni_predefinite);
   const [attesa, setAttesa] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
   const { nome: nomePasto, tag: tagPasto } = PASTI.find((p) => p.valore === pasto)!;
@@ -40,7 +58,7 @@ function ScegliPasto({
     setAttesa(true);
     setErrore(null);
     try {
-      await aggiungiAlPiano(casa.id, { data, pasto, ...voce, porzioni: voce.ricetta_id ? porzioni : undefined });
+      await aggiungiAlPiano(casa.id, { data, pasto, ...voce, porzioni: voce.ricetta_id ? porzioni : undefined, per_utente: perMe ? utente : null });
       chiudi(true);
     } catch (e) {
       setAttesa(false);
@@ -68,6 +86,27 @@ function ScegliPasto({
           {nomeGiorno(data)}, {nomePasto.toLowerCase()}
         </h1>
       </header>
+
+      <div className="viste due per-chi" role="group" aria-label="Per chi">
+        <button
+          aria-pressed={!perMe}
+          onClick={() => {
+            setPerMe(false);
+            setPorzioni(casa.porzioni_predefinite);
+          }}
+        >
+          Per tutti
+        </button>
+        <button
+          aria-pressed={perMe}
+          onClick={() => {
+            setPerMe(true);
+            setPorzioni(1);
+          }}
+        >
+          Solo per me
+        </button>
+      </div>
 
       <div className="riga-porzioni">
         <span>Per quante porzioni</span>
@@ -129,10 +168,15 @@ function ScegliPasto({
   );
 }
 
-export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
+export default function Menu({ dati, casa, utente, settimana, setSettimana }: Props) {
   const [voci, setVoci] = useState<VocePiano[] | null>(() => leggiCache<VocePiano[]>(`piano.${settimana}`));
   const [errore, setErrore] = useState<string | null>(null);
-  const [scelta, setScelta] = useState<{ data: string; pasto: Pasto } | null>(null);
+  const [scelta, setScelta] = useState<{ data: string; pasto: Pasto; soloPerMe: boolean; alPostoDi?: VocePiano } | null>(null);
+  // di base ognuno vede le voci comuni e le proprie; con l'interruttore anche quelle personali degli altri
+  const [tuttaCasa, setTuttaCasa] = useState(() => leggiCache<boolean>('menu.tutta-casa') ?? false);
+  const [persone, setPersone] = useState<Record<string, string>>(() => leggiCache<Record<string, string>>('persone') ?? {});
+  // dopo "Per me qualcos'altro": la voce comune da cui proporre di togliere una porzione
+  const [daRidurre, setDaRidurre] = useState<VocePiano | null>(null);
   const [aperta, setAperta] = useState<string | null>(null);
   const [attesa, setAttesa] = useState(false);
 
@@ -156,6 +200,16 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
     setAperta(null);
     void carica();
   }, [settimana, carica]);
+
+  useEffect(() => {
+    leggiPersone(casa.id).then(
+      (p) => {
+        setPersone(p);
+        scriviCache('persone', p);
+      },
+      () => undefined,
+    );
+  }, [casa.id]);
 
   async function fai(azione: () => Promise<void>) {
     setAttesa(true);
@@ -193,11 +247,16 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
       <ScegliPasto
         dati={dati}
         casa={casa}
+        utente={utente}
         data={scelta.data}
         pasto={scelta.pasto}
+        soloPerMe={scelta.soloPerMe}
         chiudi={(aggiunto) => {
+          const comune = scelta.alPostoDi;
           setScelta(null);
-          if (aggiunto) void carica();
+          if (!aggiunto) return;
+          void carica();
+          if (comune && (comune.porzioni ?? 0) > 1) setDaRidurre(comune);
         }}
       />
     );
@@ -236,6 +295,44 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
         </p>
       )}
 
+      {Object.keys(persone).length > 1 && (
+        <label className="spunta tutta-casa">
+          <input
+            type="checkbox"
+            checked={tuttaCasa}
+            onChange={(e) => {
+              setTuttaCasa(e.target.checked);
+              scriviCache('menu.tutta-casa', e.target.checked);
+            }}
+          />
+          Mostra anche le voci personali degli altri
+        </label>
+      )}
+
+      {daRidurre && (
+        <div className="avviso-riduci" role="status">
+          <p>
+            Ora hai una voce solo per te. Vuoi togliere la tua porzione da «{perId.get(daRidurre.ricetta_id ?? '')?.titolo ?? 'la voce comune'}»?
+          </p>
+          <div className="comandi">
+            <button
+              className="contorno"
+              disabled={attesa}
+              onClick={() => {
+                const voce = daRidurre;
+                setDaRidurre(null);
+                void fai(() => modificaPiano(voce.id, { porzioni: (voce.porzioni ?? 2) - 1 }));
+              }}
+            >
+              Togli una porzione
+            </button>
+            <button className="secondario" onClick={() => setDaRidurre(null)}>
+              Lascia com’è
+            </button>
+          </div>
+        </div>
+      )}
+
       {voci === null ? (
         !errore && <p className="nota">Carico il menù…</p>
       ) : (
@@ -247,7 +344,9 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
                 {giorno === oggi() && <span> oggi</span>}
               </h2>
               {PASTI.map((p) => {
-                const delPasto = voci.filter((v) => v.data === giorno && v.pasto === p.valore);
+                const delPasto = voci.filter(
+                  (v) => v.data === giorno && v.pasto === p.valore && (v.per_utente === null || v.per_utente === utente || tuttaCasa),
+                );
                 return (
                   <div key={p.valore} className="pasto">
                     <h3>{p.breve}</h3>
@@ -255,6 +354,8 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
                       {delPasto.map((v) => {
                         const ricetta = v.ricetta_id ? perId.get(v.ricetta_id) : undefined;
                         const porzioni = v.porzioni ?? ricetta?.porzioni ?? casa.porzioni_predefinite;
+                        const diChi = v.per_utente === null ? null : v.per_utente === utente ? 'solo per te' : `solo per ${persone[v.per_utente] ?? 'un’altra persona'}`;
+                        const mia = v.per_utente === null || v.per_utente === utente;
                         return (
                           <div key={v.id} className="pasto-voce">
                             <button
@@ -264,9 +365,9 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
                               onClick={() => setAperta(aperta === v.id ? null : v.id)}
                             >
                               <span className="titolo">{ricetta?.titolo ?? v.nota ?? 'Ricetta non più disponibile'}</span>
-                              {(ricetta || v.cucinata_il) && (
+                              {(ricetta || v.cucinata_il || diChi) && (
                                 <span className="dettagli">
-                                  {[ricetta && nomePorzioni(porzioni), v.cucinata_il && 'cucinata'].filter(Boolean).join(', ')}
+                                  {[diChi, ricetta && nomePorzioni(porzioni), v.cucinata_il && 'cucinata'].filter(Boolean).join(', ')}
                                 </span>
                               )}
                             </button>
@@ -295,6 +396,26 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
                                       {v.cucinata_il ? 'Non l’ho cucinata' : 'L’ho cucinata'}
                                     </button>
                                   )}
+                                  {v.per_utente === null && (
+                                    <button
+                                      className="contorno"
+                                      onClick={() => {
+                                        setScelta({ data: giorno, pasto: p.valore, soloPerMe: true, alPostoDi: v });
+                                        window.scrollTo(0, 0);
+                                      }}
+                                    >
+                                      Per me qualcos’altro
+                                    </button>
+                                  )}
+                                  {mia && (
+                                    <button
+                                      className="contorno"
+                                      disabled={attesa}
+                                      onClick={() => fai(() => modificaPiano(v.id, { per_utente: v.per_utente ? null : utente }))}
+                                    >
+                                      {v.per_utente ? 'Rendila per tutti' : 'Rendila solo per me'}
+                                    </button>
+                                  )}
                                   <button className="contorno rosso" disabled={attesa} onClick={() => fai(() => togliDalPiano(v.id))}>
                                     Togli dal menù
                                   </button>
@@ -309,7 +430,7 @@ export default function Menu({ dati, casa, settimana, setSettimana }: Props) {
                         aria-label={`Aggiungi a ${nomeGiorno(giorno).toLowerCase()}, ${p.nome.toLowerCase()}`}
                         disabled={!!errore && voci !== null && !navigator.onLine}
                         onClick={() => {
-                          setScelta({ data: giorno, pasto: p.valore });
+                          setScelta({ data: giorno, pasto: p.valore, soloPerMe: eMerenda(p.valore) });
                           window.scrollTo(0, 0);
                         }}
                       >

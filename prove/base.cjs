@@ -91,6 +91,7 @@ async function crea(opzioni = {}) {
   const catalogo = CATALOGO.map((x) => ({ ...x }));
   const stato = {
     catalogo, ricette: ricetteFinte(catalogo), piano: [], lista: [], diario: [], obiettivi: [], dispensa: [], prodotti: [], ricordate: [],
+    membri: [{ utente_id: 'u1', nome: 'Paul' }, { utente_id: 'u2', nome: 'Diana' }],
     /** risposte di Open Food Facts per codice a barre */
     openFoodFacts: {},
     /** false = come senza connessione: ogni richiesta fallisce */
@@ -115,6 +116,9 @@ async function crea(opzioni = {}) {
   await rotta('**/rest/v1/tag**', (r) => r.fulfill(j(TAG)));
   await rotta('**/rest/v1/ricette**', (r) => r.fulfill(j(stato.ricette)));
   await rotta('**/rest/v1/reparti**', (r) => r.fulfill(j(REPARTI)));
+  // chi usa l'app nelle prove è u1 (Paul); u2 è l'altra persona della casa
+  await rotta('**/rest/v1/membri**', (r) => r.fulfill(j(stato.membri)));
+  await rotta('**/rest/v1/rpc/imposta_nome', (r, q) => { stato.membri.find((x) => x.utente_id === 'u1').nome = corpo(q).p_nome.trim(); return r.fulfill(vuota()); });
 
   await rotta('**/rest/v1/ingredienti**', (r, q) => {
     if (q.method() === 'GET') return r.fulfill(j(stato.catalogo));
@@ -135,8 +139,8 @@ async function crea(opzioni = {}) {
 
   await rotta('**/rest/v1/piano_pasti**', (r, q) => {
     const m = q.method();
-    if (m === 'GET') return r.fulfill(j(stato.piano));
-    if (m === 'POST') { const v = corpo(q); chiamate.push(['piano+', v.data, v.pasto, v.porzioni, !!v.cucinata_il]); stato.piano.push({ id: nuovoId('p'), ...v }); return r.fulfill(vuota(201)); }
+    if (m === 'GET') return r.fulfill(j(stato.piano.map((x) => ({ per_utente: null, ...x }))));
+    if (m === 'POST') { const v = corpo(q); chiamate.push(['piano+', v.data, v.pasto, v.porzioni, !!v.cucinata_il]); stato.piano.push({ id: nuovoId('p'), per_utente: null, ...v }); return r.fulfill(vuota(201)); }
     if (m === 'PATCH') { Object.assign(stato.piano.find((x) => x.id === idDi(q.url())), corpo(q)); return r.fulfill(vuota()); }
     stato.piano = stato.piano.filter((x) => x.id !== idDi(q.url()));
     return r.fulfill(vuota());

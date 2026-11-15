@@ -18,9 +18,11 @@ export type VocePiano = {
   nota: string | null;
   porzioni: number | null;
   cucinata_il: string | null;
+  /** null = per tutta la casa; altrimenti la voce è solo di quella persona */
+  per_utente: string | null;
 };
 
-const CAMPI = 'id, data, pasto, ricetta_id, nota, porzioni, cucinata_il';
+const CAMPI = 'id, data, pasto, ricetta_id, nota, porzioni, cucinata_il, per_utente';
 
 export async function leggiPiano(casaId: string, dal: string, al: string): Promise<VocePiano[]> {
   const { data, error } = await supabase
@@ -36,7 +38,7 @@ export async function leggiPiano(casaId: string, dal: string, al: string): Promi
 
 export async function aggiungiAlPiano(
   casaId: string,
-  voce: { data: string; pasto: Pasto; ricetta_id?: string; nota?: string; porzioni?: number; cucinata?: boolean },
+  voce: { data: string; pasto: Pasto; ricetta_id?: string; nota?: string; porzioni?: number; cucinata?: boolean; per_utente?: string | null },
 ): Promise<void> {
   const { error } = await supabase.from('piano_pasti').insert({
     casa_id: casaId,
@@ -46,11 +48,12 @@ export async function aggiungiAlPiano(
     nota: voce.nota ?? null,
     porzioni: voce.porzioni ?? null,
     cucinata_il: voce.cucinata ? new Date().toISOString() : null,
+    per_utente: voce.per_utente ?? null,
   });
   if (error) throw new Error(error.message);
 }
 
-export async function modificaPiano(id: string, campi: Partial<Pick<VocePiano, 'porzioni' | 'cucinata_il'>>): Promise<void> {
+export async function modificaPiano(id: string, campi: Partial<Pick<VocePiano, 'porzioni' | 'cucinata_il' | 'per_utente'>>): Promise<void> {
   const { error } = await supabase.from('piano_pasti').update(campi).eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -86,6 +89,22 @@ export async function segnaCucinataOggi(casaId: string, ricettaId: string, porzi
   const pasto = pastoDiAdesso();
   await aggiungiAlPiano(casaId, { data, pasto, ricetta_id: ricettaId, porzioni, cucinata: true });
   return pasto;
+}
+
+/**
+ * Le voci del menù che riguardano una persona: quelle solo sue e quelle comuni. Se in un pasto ha una voce
+ * solo sua, le comuni di quel pasto non la riguardano più (ha scelto di mangiare altro).
+ */
+export function vociPerMe(voci: VocePiano[], utente: string): VocePiano[] {
+  const mie = new Set(voci.filter((v) => v.per_utente === utente).map((v) => `${v.data} ${v.pasto}`));
+  return voci.filter((v) => v.per_utente === utente || (!v.per_utente && !mie.has(`${v.data} ${v.pasto}`)));
+}
+
+/** Nomi delle persone della casa, per dire di chi è una voce personale: id utente -> nome. */
+export async function leggiPersone(casaId: string): Promise<Record<string, string>> {
+  const { data, error } = await supabase.from('membri').select('utente_id, nome').eq('casa_id', casaId);
+  if (error) throw new Error(error.message);
+  return Object.fromEntries(((data ?? []) as { utente_id: string; nome: string | null }[]).map((m) => [m.utente_id, m.nome ?? 'un’altra persona']));
 }
 
 /** Il pasto più probabile a quest'ora, per precompilare le scelte. */

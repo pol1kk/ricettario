@@ -74,7 +74,7 @@ function Dentro({ session }: { session: Session }) {
   const casa = stato.tipo === 'pronto' ? (stato.dati.casa ?? undefined) : undefined;
 
   if (rotta.vista === 'impostazioni') {
-    return <Impostazioni email={session.user.email ?? ''} casa={casa} />;
+    return <Impostazioni email={session.user.email ?? ''} casa={casa} utente={session.user.id} />;
   }
 
   if (rotta.vista === 'obiettivi') {
@@ -166,7 +166,7 @@ function Dentro({ session }: { session: Session }) {
         </p>
       )}
       {rotta.vista === 'menu' ? (
-        <Menu dati={dati} casa={dati.casa} settimana={settimana} setSettimana={setSettimana} />
+        <Menu dati={dati} casa={dati.casa} utente={utente} settimana={settimana} setSettimana={setSettimana} />
       ) : rotta.vista === 'lista' ? (
         <Lista dati={dati} casa={dati.casa} />
       ) : rotta.vista === 'dispensa' ? (

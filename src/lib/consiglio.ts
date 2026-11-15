@@ -74,6 +74,26 @@ function distanza(valori: Valori, meta: Valori): number | null {
   return parti.length ? parti.reduce((a, b) => a + b, 0) / parti.length : null;
 }
 
+/**
+ * La porzione (tra mezza e due) che avvicina di più una ricetta all'obiettivo di un pasto.
+ * `distanza` è null se la ricetta non ha valori o l'obiettivo non ha calorie né proteine: allora la porzione è 1.
+ */
+export function porzioneConsigliata(ricetta: Ricetta, meta: Valori): { porzioni: number; distanza: number | null } {
+  let porzioni = 1;
+  let vicino: number | null = null;
+  let migliore = Infinity;
+  for (const p of PORZIONI_POSSIBILI) {
+    const d = distanza(valoriRicetta(ricetta, p), meta);
+    // a parità si preferisce la porzione intera
+    if (d !== null && d + Math.abs(p - 1) * 0.02 < migliore) {
+      migliore = d + Math.abs(p - 1) * 0.02;
+      porzioni = p;
+      vicino = d;
+    }
+  }
+  return { porzioni, distanza: vicino };
+}
+
 const elenco = (nomi: string[]) => (nomi.length <= 3 ? nomi.join(', ') : `${nomi.slice(0, 3).join(', ')} e altri ${nomi.length - 3}`);
 
 export function consiglia(
@@ -108,20 +128,9 @@ export function consiglia(
     let punteggio = 0;
 
     // ---- porzioni: quella che avvicina di più all'obiettivo del pasto ----
-    let porzioni = 1;
-    let vicino: number | null = null;
-    if (richieste.obiettivi && meta) {
-      let migliore = Infinity;
-      for (const p of PORZIONI_POSSIBILI) {
-        const d = distanza(valoriRicetta(ricetta, p), meta);
-        // a parità si preferisce la porzione intera
-        if (d !== null && d + Math.abs(p - 1) * 0.02 < migliore) {
-          migliore = d + Math.abs(p - 1) * 0.02;
-          porzioni = p;
-          vicino = d;
-        }
-      }
-    }
+    const scelta = richieste.obiettivi && meta ? porzioneConsigliata(ricetta, meta) : { porzioni: 1, distanza: null };
+    const porzioni = scelta.porzioni;
+    const vicino = scelta.distanza;
     const valori = valoriRicetta(ricetta, porzioni);
 
     // ---- cosa c'è in casa ----

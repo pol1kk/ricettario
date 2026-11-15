@@ -22,7 +22,8 @@ import {
   type Valori,
   type VoceDiario,
 } from '../lib/diario';
-import { PASTI, leggiPiano, modificaPiano, type Pasto, type VocePiano } from '../lib/piano';
+import { obiettivoDelPasto, porzioneConsigliata } from '../lib/consiglio';
+import { PASTI, leggiPiano, modificaPiano, vociPerMe, type Pasto, type VocePiano } from '../lib/piano';
 import { vai } from '../lib/rotta';
 import AggiungiAlDiario from './AggiungiAlDiario';
 import ScaricoDispensa from './ScaricoDispensa';
@@ -314,11 +315,16 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
   const delGiorno = (voci ?? []).filter((v) => v.data === giorno);
   const obiettivo = obiettivoDel(obiettivi, giorno);
   // voci del menù di oggi non ancora confermate: si propongono, pronte da segnare come mangiate
-  const proposte = piano.filter(
+  // contano le voci comuni e quelle solo di questa persona
+  const proposte = vociPerMe(piano, utente).filter(
     (p) =>
       p.data === giorno &&
       !delGiorno.some((v) => v.piano_id === p.id || (p.ricetta_id !== null && v.ricetta_id === p.ricetta_id && v.pasto === p.pasto)),
   );
+
+  /** Quanta ne conviene mangiare a questa persona per restare nei suoi obiettivi; 1 se non ha obiettivi. */
+  const porzionePerMe = (ricetta: Ricetta, pasto: Pasto) =>
+    haObiettivo(obiettivo) ? porzioneConsigliata(ricetta, obiettivoDelPasto(obiettivo, somma(delGiorno), pasto)).porzioni : 1;
 
   function conferma(p: VocePiano) {
     const ricetta = p.ricetta_id ? perId.get(p.ricetta_id) : undefined;
@@ -328,6 +334,7 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
       window.scrollTo(0, 0);
       return;
     }
+    const quanta = porzionePerMe(ricetta, p.pasto);
     void fai(async () => {
       await aggiungiVoce({
         data: giorno,
@@ -336,9 +343,9 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
         ricetta_id: ricetta.id,
         ingrediente_id: null,
         piano_id: p.id,
-        quantita: 1,
+        quantita: quanta,
         unita: 'porzioni',
-        ...valoriRicetta(ricetta, 1),
+        ...valoriRicetta(ricetta, quanta),
       });
       // se è stata mangiata, è stata anche cucinata: il menù la segna e la lista non la ricompra
       if (!p.cucinata_il) {
@@ -456,13 +463,15 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
 
                 {daMenu.map((v) => {
                   const ricetta = v.ricetta_id ? perId.get(v.ricetta_id) : undefined;
+                  const quanta = ricetta ? porzionePerMe(ricetta, v.pasto) : 1;
                   return (
                     <div key={v.id} className="proposta">
                       <span className="testi">
                         <span className="titolo">{ricetta?.titolo ?? v.nota ?? 'Voce del menù'}</span>
                         <span className="dettagli">
-                          Dal menù{ricetta && <>, 1 porzione, </>}
-                          {ricetta && <Sintesi valori={valoriRicetta(ricetta, 1)} />}
+                          Dal menù{v.per_utente && ', solo per te'}
+                          {ricetta && <>, {quanta === 1 ? '1 porzione' : `per te ${nomeQuantita(quanta, 'porzioni')}`}, </>}
+                          {ricetta && <Sintesi valori={valoriRicetta(ricetta, quanta)} />}
                         </span>
                       </span>
                       <button className="contorno" disabled={attesa} onClick={() => conferma(v)}>

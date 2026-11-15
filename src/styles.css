@@ -3208,3 +3208,37 @@ button.altre {
 .aggiungi-diario .modulo > .spunta {
   font-weight: 400;
 }
+
+/* ---------- menù: voci personali ---------- */
+.spunta.tutta-casa {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.97rem;
+}
+
+.per-chi {
+  width: 100%;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.avviso-riduci {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--superficie);
+  border: 1.5px solid color-mix(in srgb, var(--limone) 60%, var(--linea));
+  border-radius: var(--raggio);
+}
+
+.avviso-riduci .comandi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.avviso-riduci .comandi button {
+  width: auto;
+}
+
+.il-mio-nome {
+  margin: 1.5rem 0;
+}
