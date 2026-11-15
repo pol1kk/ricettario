@@ -226,6 +226,26 @@ async function crea(opzioni = {}) {
     return r.fulfill(vuota());
   });
 
+  await rotta('**/rest/v1/rpc/scala_dispensa', (r, q) => {
+    const c = corpo(q).p;
+    chiamate.push(['scala', c.ricetta_id ? 'ricetta' : 'uso', JSON.stringify(c.righe)]);
+    let toccate = 0;
+    for (const riga of c.righe) {
+      let resto = riga.quantita;
+      const sue = stato.dispensa.filter((x) => x.ingrediente_id === riga.ingrediente_id && !x.esaurita_il && x.quantita > 0)
+        .sort((a, b) => (a.scadenza ?? '9999').localeCompare(b.scadenza ?? '9999'));
+      for (const conf of sue) {
+        if (resto <= 0) break;
+        const preso = Math.min(conf.quantita, resto);
+        conf.quantita -= preso;
+        if (conf.quantita <= 0) conf.esaurita_il = 'ora';
+        resto -= preso;
+        toccate++;
+      }
+    }
+    return r.fulfill(j(toccate));
+  });
+
   await rotta('**/world.openfoodfacts.org/**', (r, q) => {
     const trovato = stato.openFoodFacts[q.url().match(/product\/(\d+)/)[1]];
     return r.fulfill(trovato ? j({ status: 1, product: trovato }) : j({ status: 0 }, 404));

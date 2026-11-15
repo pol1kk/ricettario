@@ -12,6 +12,7 @@ import GestioneTag from './screens/GestioneTag';
 import Menu from './screens/Menu';
 import Lista from './screens/Lista';
 import Barra from './screens/Barra';
+import Consiglio from './screens/Consiglio';
 import Cucina from './screens/Cucina';
 import Diario from './screens/Diario';
 import Dispensa from './screens/Dispensa';
@@ -136,6 +137,10 @@ function Dentro({ session }: { session: Session }) {
         ricarica={ricarica}
       />
     );
+  }
+
+  if (rotta.vista === 'consiglio' && dati.casa) {
+    return <Consiglio dati={dati} casa={dati.casa} />;
   }
 
   if (rotta.vista === 'cucina') {

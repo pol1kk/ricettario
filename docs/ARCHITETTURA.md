@@ -39,6 +39,7 @@ L'indirizzo è nel frammento (`#/…`). `usaRotta()` restituisce la rotta corren
 | `#/ricetta/<id>` | `ricetta` | `Ricetta.tsx` | sopra, con "indietro" |
 | `#/cucina/<id>` | `cucina` | `Cucina.tsx` | sopra |
 | `#/obiettivi` | `obiettivi` | `Obiettivi.tsx` | sopra |
+| `#/consiglio` | `consiglio` | `Consiglio.tsx` ("Cosa mangio?") | sopra |
 | `#/impostazioni`, `#/tag` | | `Impostazioni.tsx`, `GestioneTag.tsx` | sopra |
 
 - Le viste principali (`PRINCIPALI`) hanno la barra in basso (`Barra.tsx`): Diario, Menù, Dispensa, Ricette.
@@ -61,7 +62,8 @@ L'indirizzo è nel frammento (`#/…`). `usaRotta()` restituisce la rotta corren
 | `lib/piano.ts` | menù: `PASTI` (i cinque pasti), lettura e modifica di `piano_pasti`, `segnaCucinataOggi` |
 | `lib/lista.ts` | lista della spesa **con coda offline** (unico punto che scrive senza rete) |
 | `lib/diario.ts` | diario e obiettivi; calcoli sui valori (`valoriRicetta`, `valoriAlimento`, `pesoPorzione`, `somma`, `moltiplica`) |
-| `lib/dispensa.ts` | confezioni, prodotti e codici a barre, Open Food Facts, date e scadenze |
+| `lib/dispensa.ts` | confezioni, prodotti e codici a barre, Open Food Facts, date e scadenze, scarico (`scalaDispensa`, `riassumiDispensa`) |
+| `lib/consiglio.ts` | consiglio di un pasto: **solo calcolo**, senza rete né interfaccia (`consiglia`, `obiettivoDelPasto`) |
 | `lib/date.ts` | giorni come stringhe `aaaa-mm-gg`, settimana dal lunedì |
 | `lib/foto.ts`, `lib/schermo.ts`, `lib/password.ts` | foto di copertina, schermo acceso, promemoria password |
 
@@ -108,6 +110,7 @@ fotografia del momento), `obiettivi` (una riga per persona).
 | `genera_lista_spesa(casa, dal, al)` | rifà le voci di origine `menu` dalla settimana, lascia le manuali |
 | `metti_in_dispensa(casa, json)` | confezioni + movimento + toglie la voce dalla lista |
 | `chiudi_confezione(dispensa, motivo)` | confezione finita o buttata |
+| `scala_dispensa(casa, json)` | toglie le quantità usate dalle confezioni che scadono prima, con i movimenti |
 
 **Due idee da tenere a mente**
 
@@ -116,6 +119,17 @@ fotografia del momento), `obiettivi` (una riga per persona).
   nell'app compaiono come `base: true`.
 - *Una sola unità per ingrediente.* Tutte le quantità di un ingrediente (ricette, lista, dispensa) sono nella
   sua `unita_base`: è questo che permette di sommarle e confrontarle.
+
+## Consiglio di un pasto e scarico
+
+- `Consiglio.tsx` legge dispensa, diario degli ultimi tre giorni e obiettivi, poi chiama `consiglia()` a ogni
+  cambio delle richieste. Le richieste esplicite (tempo, tag, testo) **escludono**; dispensa, scadenze, obiettivi,
+  pasto e varietà danno punti. Ogni consiglio porta i suoi `motivi`, che la schermata mostra così come sono.
+  Per cambiare l'ordine dei consigli si tocca solo `lib/consiglio.ts`.
+- Gli ingredienti di base (a stato) e quelli facoltativi non contano per dire se una ricetta "si può fare".
+- `ScaricoDispensa.tsx` propone di togliere dalla dispensa gli ingredienti usati, con quantità correggibili:
+  compare a fine modalità cucina e nel diario dopo "L'ho mangiato" su una voce del menù non ancora cucinata.
+  Non mostra nulla se in dispensa non c'è nessuno degli ingredienti.
 
 ## Pubblicazione e copie
 

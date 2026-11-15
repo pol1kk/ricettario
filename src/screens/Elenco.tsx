@@ -104,6 +104,10 @@ export default function Elenco({
         </button>
       </header>
 
+      <button className="contorno cosa-mangio" onClick={() => vai('/consiglio')}>
+        Consigliami un pasto
+      </button>
+
       {!passwordImpostata() && (
         <button className="avviso" onClick={() => vai('/impostazioni')}>
           Scegli una password per entrare anche dall'app installata

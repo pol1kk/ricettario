@@ -10,6 +10,7 @@ export type Rotta =
   | { vista: 'ricetta'; id: string }
   | { vista: 'cucina'; id: string }
   | { vista: 'obiettivi' }
+  | { vista: 'consiglio' }
   | { vista: 'impostazioni' }
   | { vista: 'tag' };
 
@@ -29,6 +30,7 @@ function leggi(hash: string): Rotta {
   if (hash === '#/impostazioni') return { vista: 'impostazioni' };
   if (hash === '#/tag') return { vista: 'tag' };
   if (hash === '#/obiettivi') return { vista: 'obiettivi' };
+  if (hash === '#/consiglio') return { vista: 'consiglio' };
   if (hash === '#/ricette') return { vista: 'elenco' };
   return { vista: 'diario' }; // l'app si apre sul diario; comprende anche i frammenti del link di accesso via email
 }

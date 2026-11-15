@@ -227,3 +227,29 @@ export function descriviScadenza(s: string): { testo: string; urgenza: 'scaduto'
   if (g <= 3) return { testo: `scade tra ${g} giorni`, urgenza: 'presto' };
   return { testo: `scade il ${formattaData(s)}`, urgenza: 'lontano' };
 }
+
+// ---------- scarico ----------
+
+/** Toglie dalla dispensa le quantità usate, partendo dalle confezioni che scadono prima. */
+export async function scalaDispensa(
+  casaId: string,
+  ricettaId: string | null,
+  righe: { ingrediente_id: string; quantita: number }[],
+): Promise<void> {
+  const { error } = await supabase.rpc('scala_dispensa', { p_casa: casaId, p: { ricetta_id: ricettaId, righe } });
+  if (error) throw new Error(error.message);
+}
+
+/** Quanto c'è in tutto di ogni ingrediente a quantità, e la scadenza più vicina di ciascuno. */
+export function riassumiDispensa(confezioni: Confezione[]): Map<string, { quantita: number; scadenza: string | null; presente: boolean }> {
+  const totali = new Map<string, { quantita: number; scadenza: string | null; presente: boolean }>();
+  for (const c of confezioni) {
+    const t = totali.get(c.ingrediente_id) ?? { quantita: 0, scadenza: null, presente: false };
+    t.quantita += c.quantita ?? 0;
+    // un ingrediente a stato ("c'è", "sta finendo") è presente finché ha una riga aperta
+    t.presente = true;
+    if (c.scadenza && (!t.scadenza || c.scadenza < t.scadenza)) t.scadenza = c.scadenza;
+    totali.set(c.ingrediente_id, t);
+  }
+  return totali;
+}

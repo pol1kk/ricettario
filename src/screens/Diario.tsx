@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { formattaValore, leggiCache, scriviCache, type Casa, type Dati } from '../lib/dati';
+import { formattaValore, leggiCache, scriviCache, type Casa, type Dati, type Ricetta } from '../lib/dati';
 import { daIso, lunedi, oggi, piuGiorni } from '../lib/date';
 import {
   CAMPI_VALORI,
@@ -25,6 +25,7 @@ import {
 import { PASTI, leggiPiano, modificaPiano, type Pasto, type VocePiano } from '../lib/piano';
 import { vai } from '../lib/rotta';
 import AggiungiAlDiario from './AggiungiAlDiario';
+import ScaricoDispensa from './ScaricoDispensa';
 import { CampiValori, Sintesi, inTesti } from './ValoriDiario';
 
 type Props = { dati: Dati; casa: Casa; utente: string; giorno: string; setGiorno: (g: string) => void };
@@ -252,6 +253,8 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
   const [aperta, setAperta] = useState<string | null>(null);
   const [attesa, setAttesa] = useState(false);
   const [aggiunta, setAggiunta] = useState<{ pasto: Pasto; nome?: string; piano_id?: string } | null>(null);
+  // ricetta appena confermata dal menù che non risultava ancora cucinata: si propone di scalarla dalla dispensa
+  const [scarico, setScarico] = useState<{ ricetta: Ricetta; porzioni: number } | null>(null);
 
   const perId = useMemo(() => new Map(dati.ricette.map((r) => [r.id, r])), [dati.ricette]);
 
@@ -337,7 +340,10 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
         ...valoriRicetta(ricetta, 1),
       });
       // se è stata mangiata, è stata anche cucinata: il menù la segna e la lista non la ricompra
-      if (!p.cucinata_il) await modificaPiano(p.id, { cucinata_il: new Date().toISOString() });
+      if (!p.cucinata_il) {
+        await modificaPiano(p.id, { cucinata_il: new Date().toISOString() });
+        setScarico({ ricetta, porzioni: p.porzioni ?? ricetta.porzioni });
+      }
     });
   }
 
@@ -410,6 +416,11 @@ export default function Diario({ dati, casa, utente, giorno, setGiorno }: Props)
               Imposta un obiettivo per vedere quanto ti resta
             </button>
           )}
+
+          <button className="contorno cosa-mangio" onClick={() => vai('/consiglio')}>
+            Consigliami un pasto
+          </button>
+          {scarico && <ScaricoDispensa key={scarico.ricetta.id} casa={casa} ricetta={scarico.ricetta} porzioni={scarico.porzioni} />}
 
           {PASTI.map((p) => {
             const sue = delGiorno.filter((v) => v.pasto === p.valore);

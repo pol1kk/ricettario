@@ -2911,3 +2911,216 @@ button.svuota {
 .codice-a-mano {
   margin-top: 1.5rem;
 }
+
+/* ================= consiglio di un pasto ================= */
+
+button.cosa-mangio {
+  margin: 1rem 0 0;
+}
+
+.diario button.cosa-mangio {
+  margin-bottom: 1.25rem;
+}
+
+.diario .cosa-mangio + .pasto-diario,
+.diario .scarico + .pasto-diario {
+  margin-top: 0;
+}
+
+.richieste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+}
+
+.richieste label {
+  font-size: 0.95rem;
+}
+
+.richieste .filtri {
+  margin-top: 0;
+}
+
+.richieste .scelte {
+  display: flex;
+  flex-direction: column;
+}
+
+.richieste .spunta {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.consiglio > .stato-rete {
+  margin-top: 1rem;
+}
+
+.proposte {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border-top: 1.5px solid var(--linea);
+}
+
+.proposta-pasto {
+  padding: 1rem 0 1.15rem;
+  border-bottom: 1.5px solid var(--linea);
+}
+
+button.apri-ricetta {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 0;
+  padding: 0;
+  border-radius: var(--raggio);
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+
+button.apri-ricetta:hover {
+  background: transparent;
+}
+
+button.apri-ricetta:hover .titolo {
+  color: var(--basilico);
+}
+
+.apri-ricetta .titolo {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.apri-ricetta .dettagli {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--tenue);
+  font-size: 0.9rem;
+}
+
+/* il motivo è la parte che conta di un consiglio: testo pieno, il primo in evidenza */
+.motivi {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0 0 0 0.85rem;
+  border-left: 3px solid color-mix(in srgb, var(--basilico) 45%, var(--linea));
+}
+
+.motivi li {
+  padding: 0.12rem 0;
+  line-height: 1.35;
+}
+
+.motivi li:first-child {
+  font-weight: 650;
+}
+
+.proposta-pasto .comandi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.proposta-pasto .comandi button {
+  width: auto;
+  min-height: 2.75rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.97rem;
+}
+
+.fatto-nota {
+  padding: 0.45rem 0.4rem;
+  color: var(--basilico);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+button.altre {
+  margin-top: 1.25rem;
+}
+
+/* ---------- scarico dalla dispensa ---------- */
+.scarico {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.1rem 1.1rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: calc(var(--raggio) + 4px);
+  text-align: left;
+}
+
+.cucina .scarico {
+  margin-top: 1.5rem;
+}
+
+.scarico h2 {
+  font-size: 1.1rem;
+  font-weight: 750;
+}
+
+.scarico h2 + .nota {
+  margin-top: 0.25rem;
+}
+
+.scarico ul {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+}
+
+.scarico li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  border-top: 1.5px solid var(--linea);
+}
+
+.scarico .spunta {
+  flex: 1;
+  min-width: 0;
+}
+
+.scarico .titolo {
+  display: block;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.scarico .dettagli {
+  display: block;
+  color: var(--tenue);
+  font-size: 0.88rem;
+}
+
+.scarico .campo-unita {
+  flex: none;
+}
+
+.scarico .campo-unita input {
+  width: 4.6rem;
+}
+
+.scarico .campo-unita span {
+  width: 2.4rem;
+}
+
+.scarico .comandi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.scarico .comandi button {
+  width: auto;
+}

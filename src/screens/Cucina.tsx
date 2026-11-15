@@ -3,6 +3,7 @@ import { formattaQuantita, type Casa, type Ricetta } from '../lib/dati';
 import { PASTI, segnaCucinataOggi, nomePorzioni, type Pasto } from '../lib/piano';
 import { aggiungiVoce, dataDiOggi, valoriRicetta } from '../lib/diario';
 import { tornaAllElenco } from '../lib/rotta';
+import ScaricoDispensa from './ScaricoDispensa';
 import { usaSchermoAcceso } from '../lib/schermo';
 import Copertina from './Copertina';
 import Porzioni from './Porzioni';
@@ -162,6 +163,7 @@ export default function Cucina({
           <p className="nota">{ricetta.copertina_url ? 'Vuoi aggiornare la foto del piatto?' : 'Vuoi aggiungere la foto del piatto?'}</p>
           <Copertina ricetta={ricetta} casaId={casa.id} ricarica={ricarica} />
         </div>
+        <ScaricoDispensa casa={casa} ricetta={ricetta} porzioni={porzioni} />
         <div className="finale-diario">
           {nelDiario === 'si' ? (
             <p className="nota" role="status">
