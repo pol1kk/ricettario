@@ -14,6 +14,7 @@ import Lista from './screens/Lista';
 import Barra from './screens/Barra';
 import Cucina from './screens/Cucina';
 import Diario from './screens/Diario';
+import Dispensa from './screens/Dispensa';
 import Obiettivi from './screens/Obiettivi';
 
 type Stato = { tipo: 'carico' } | { tipo: 'errore'; messaggio: string } | { tipo: 'pronto'; dati: Dati };
@@ -163,6 +164,8 @@ function Dentro({ session }: { session: Session }) {
         <Menu dati={dati} casa={dati.casa} settimana={settimana} setSettimana={setSettimana} />
       ) : rotta.vista === 'lista' ? (
         <Lista dati={dati} casa={dati.casa} />
+      ) : rotta.vista === 'dispensa' ? (
+        <Dispensa dati={dati} casa={dati.casa} ricarica={ricarica} />
       ) : rotta.vista === 'elenco' ? (
         <Elenco dati={dati} filtri={filtri} setFiltri={setFiltri} />
       ) : (

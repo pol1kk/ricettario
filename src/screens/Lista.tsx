@@ -4,6 +4,8 @@ import { aggiungi, elimina, sposta, spunta, usaLista, type Voce } from '../lib/l
 import { supabase } from '../lib/supabase';
 import { vaiAScheda } from '../lib/rotta';
 import { usaSchermoAcceso } from '../lib/schermo';
+import FineSpesa from './FineSpesa';
+import SchedeDispensa from './SchedeDispensa';
 
 type Base = { id: string; nome: string };
 
@@ -11,6 +13,7 @@ export default function Lista({ dati, casa }: { dati: Dati; casa: Casa }) {
   const lista = usaLista(casa.id);
   const [testo, setTesto] = useState('');
   const [spesa, setSpesa] = useState(false);
+  const [fineSpesa, setFineSpesa] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
   const [attesa, setAttesa] = useState(false);
   const [base, setBase] = useState<Base[]>(() => leggiCache<Base[]>('lista.base') ?? []);
@@ -151,16 +154,19 @@ export default function Lista({ dati, casa }: { dati: Dati; casa: Casa }) {
   const vuota = lista.visibili.length === 0;
   const sospese = lista.coda.length;
 
+  if (fineSpesa) return <FineSpesa dati={dati} casa={casa} carrello={nelCarrello} chiudi={() => setFineSpesa(false)} />;
+
   return (
     <main className={`lista${spesa ? ' in-spesa' : ''}`}>
       <header className="home-testa">
-        <h1>Lista della spesa</h1>
+        <h1>{spesa ? 'Lista della spesa' : 'Dispensa'}</h1>
         {!vuota && (
           <button className="interruttore" aria-pressed={spesa} onClick={() => setSpesa(!spesa)}>
             Modalità spesa
           </button>
         )}
       </header>
+      {!spesa && <SchedeDispensa attiva="lista" daComprare={daComprare.length} />}
 
       {(lista.offline || sospese > 0) && (
         <p className="stato-rete" role="status">
@@ -207,9 +213,21 @@ export default function Lista({ dati, casa }: { dati: Dati; casa: Casa }) {
             <section className="reparto carrello">
               <h2>Nel carrello</h2>
               <ul>{nelCarrello.map(riga)}</ul>
+              {/* serve la connessione e che le spunte siano già arrivate al database */}
+              <button
+                className="fine-spesa-avvia"
+                disabled={attesa || lista.offline || sospese > 0}
+                onClick={() => {
+                  setSpesa(false);
+                  setFineSpesa(true);
+                  window.scrollTo(0, 0);
+                }}
+              >
+                Fine spesa: metti in dispensa
+              </button>
               {!spesa && (
-                <button className="contorno" disabled={attesa} onClick={() => togli(nelCarrello.map((v) => v.id))}>
-                  Svuota il carrello
+                <button className="secondario svuota" disabled={attesa} onClick={() => togli(nelCarrello.map((v) => v.id))}>
+                  Svuota il carrello senza metterlo in dispensa
                 </button>
               )}
             </section>

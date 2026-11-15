@@ -6,6 +6,7 @@ export type Rotta =
   | { vista: 'elenco' }
   | { vista: 'menu' }
   | { vista: 'lista' }
+  | { vista: 'dispensa' }
   | { vista: 'ricetta'; id: string }
   | { vista: 'cucina'; id: string }
   | { vista: 'obiettivi' }
@@ -15,7 +16,7 @@ export type Rotta =
 export type Vista = Rotta['vista'];
 
 /** Le schermate della barra in basso; le altre si aprono "sopra" e hanno il tasto indietro. */
-export const PRINCIPALI: Vista[] = ['diario', 'menu', 'lista', 'elenco'];
+export const PRINCIPALI: Vista[] = ['diario', 'menu', 'dispensa', 'lista', 'elenco'];
 
 function leggi(hash: string): Rotta {
   const m = hash.match(/^#\/ricetta\/([0-9a-f-]{36})$/);
@@ -24,6 +25,7 @@ function leggi(hash: string): Rotta {
   if (c) return { vista: 'cucina', id: c[1] };
   if (hash === '#/menu') return { vista: 'menu' };
   if (hash === '#/lista') return { vista: 'lista' };
+  if (hash === '#/dispensa') return { vista: 'dispensa' };
   if (hash === '#/impostazioni') return { vista: 'impostazioni' };
   if (hash === '#/tag') return { vista: 'tag' };
   if (hash === '#/obiettivi') return { vista: 'obiettivi' };

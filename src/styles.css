@@ -2535,3 +2535,379 @@ button.salva-obiettivi {
 .aggiungi-diario .modulo {
   margin-top: 1.25rem;
 }
+
+/* ================= dispensa ================= */
+
+.dispensa .home-testa,
+.lista .home-testa {
+  margin-bottom: 0.75rem;
+  min-height: 2.75rem;
+}
+
+.schede-dispensa {
+  width: 100%;
+  margin-bottom: 1.25rem;
+}
+
+.schede-dispensa button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.contatore {
+  min-width: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--limone);
+  color: #1c2621;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.viste.tre {
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 0;
+}
+
+.azioni-dispensa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.azioni-dispensa button,
+button.scansiona {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-inline: 0.75rem;
+}
+
+.dispensa .filtri {
+  margin-top: 0;
+}
+
+.dispensa .conteggio {
+  margin-top: 0.25rem;
+  min-height: 2.25rem;
+}
+
+.scorte {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1.5px solid var(--linea);
+}
+
+.scorte > li {
+  border-bottom: 1.5px solid var(--linea);
+}
+
+button.scorta,
+button.riga-confezione {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 3.75rem;
+  padding: 0.6rem 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 400;
+  text-align: left;
+}
+
+button.scorta:hover,
+button.riga-confezione:hover {
+  background: transparent;
+}
+
+button.scorta:hover .titolo {
+  color: var(--basilico);
+}
+
+button.scorta:active,
+button.riga-confezione:active {
+  transform: none;
+}
+
+.scorta .icona {
+  flex: none;
+  width: 1.8rem;
+  font-size: 1.45rem;
+  text-align: center;
+}
+
+.scorta .testi,
+.riga-confezione .testi {
+  flex: 1;
+  min-width: 0;
+}
+
+.scorta .titolo {
+  display: block;
+  font-size: 1.08rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.scorta .dettagli,
+.riga-confezione .dettagli {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--tenue);
+  font-size: 0.9rem;
+}
+
+/* scadenza vicina: giallo; passata: rosso. Il testo dice già tutto, il colore aiuta a trovarle */
+.dettagli[data-urgenza='presto'] {
+  color: color-mix(in srgb, var(--carboidrati) 75%, var(--inchiostro));
+  font-weight: 650;
+}
+
+.dettagli[data-urgenza='scaduto'] {
+  color: var(--pomodoro);
+  font-weight: 650;
+}
+
+.scorta .quanto {
+  flex: none;
+  width: auto;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.confezioni {
+  margin: 0 0 0.9rem 2.6rem;
+  padding: 0.15rem 0.9rem 0.6rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: var(--raggio);
+  animation: entra 0.18s ease both;
+}
+
+.una-confezione + .una-confezione {
+  border-top: 1.5px solid var(--linea);
+}
+
+button.riga-confezione {
+  min-height: 3.25rem;
+}
+
+.riga-confezione .titolo {
+  display: block;
+  font-weight: 650;
+}
+
+.riga-confezione .prodotto {
+  color: var(--tenue);
+  font-weight: 400;
+}
+
+.modifica-etichetta {
+  flex: none;
+  color: var(--basilico);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.modifica-confezione {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem 0 0.9rem;
+}
+
+.modifica-confezione label {
+  font-size: 0.92rem;
+  margin-bottom: 0.3rem;
+}
+
+.due-campi {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.due-campi > div {
+  min-width: 0;
+}
+
+.campo-unita.largo input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  text-align: left;
+}
+
+.campo-unita.largo span {
+  width: auto;
+  min-width: 2.2rem;
+}
+
+.due-campi input,
+.due-campi select {
+  padding: 0.7rem 0.8rem;
+}
+
+.due-campi .campo-unita.largo input {
+  padding: 0.7rem 0.8rem;
+}
+
+button.in-lista {
+  margin: 0.25rem 0 0 -0.75rem;
+  font-size: 0.95rem;
+}
+
+.confezioni > .nota {
+  margin-top: 0.6rem;
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--pomodoro);
+}
+
+/* ---------- mettere via un prodotto ---------- */
+.passo-spesa {
+  margin-bottom: 0.4rem;
+  color: var(--tenue);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.confezione .modulo,
+.aggiungi-dispensa > .scansiona {
+  margin-top: 1.25rem;
+}
+
+.confezione .modulo > .nota {
+  margin-top: -0.35rem;
+}
+
+.confezione .porzioni output {
+  min-width: 3rem;
+}
+
+fieldset.posizioni legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.errore.in-cima {
+  max-width: 31.5rem;
+  margin: calc(env(safe-area-inset-top) + 0.75rem) auto 0;
+}
+
+.scegli-ingrediente h2 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--tenue);
+}
+
+.scegli-ingrediente .ricerca {
+  margin: 1.5rem 0 0.75rem;
+}
+
+button.crea-ingrediente {
+  margin-top: 1rem;
+}
+
+.nuovo-ingrediente {
+  margin-top: 1.25rem;
+}
+
+.spiegazione {
+  margin-top: 1rem;
+}
+
+button.fine-spesa-avvia {
+  margin-top: 1rem;
+}
+
+button.svuota {
+  display: block;
+  margin: 0.25rem auto 0;
+  font-size: 0.92rem;
+}
+
+.fine-spesa .vuoto button {
+  margin-top: 1.25rem;
+}
+
+.fine-spesa .vuoto .secondario {
+  display: block;
+  margin: 0.5rem auto 0;
+}
+
+/* ---------- lettore di codici a barre ---------- */
+.mirino {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: calc(var(--raggio) + 4px);
+  background: #10140f;
+}
+
+.mirino video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.mirino[data-pronta='true'] video {
+  opacity: 1;
+}
+
+.mirino .nota {
+  position: absolute;
+  color: #cfd8cf;
+}
+
+/* la riga indica dove tenere il codice; si muove appena, per dire che sta leggendo */
+.riga-mirino {
+  position: absolute;
+  inset: 50% 12% auto;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--limone);
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.18);
+  opacity: 0;
+}
+
+.mirino[data-pronta='true'] .riga-mirino {
+  opacity: 0.9;
+  animation: leggi 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes leggi {
+  from {
+    transform: translateY(-1.25rem);
+  }
+  to {
+    transform: translateY(1.25rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mirino[data-pronta='true'] .riga-mirino {
+    animation: none;
+  }
+}
+
+.codice-a-mano {
+  margin-top: 1.5rem;
+}
