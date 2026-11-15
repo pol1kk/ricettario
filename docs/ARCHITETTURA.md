@@ -40,6 +40,7 @@ L'indirizzo è nel frammento (`#/…`). `usaRotta()` restituisce la rotta corren
 | `#/cucina/<id>` | `cucina` | `Cucina.tsx` | sopra |
 | `#/obiettivi` | `obiettivi` | `Obiettivi.tsx` | sopra |
 | `#/consiglio` | `consiglio` | `Consiglio.tsx` ("Cosa mangio?") | sopra |
+| `#/nuova-ricetta` | `nuova-ricetta` | `NuovaRicetta.tsx` (ricetta scritta a mano o incollata) | sopra |
 | `#/preferenze` | `preferenze` | `Preferenze.tsx` (preferenze del menù, questionario la prima volta) | sopra |
 | `#/impostazioni`, `#/tag` | | `Impostazioni.tsx`, `GestioneTag.tsx` | sopra |
 
@@ -66,6 +67,7 @@ L'indirizzo è nel frammento (`#/…`). `usaRotta()` restituisce la rotta corren
 | `lib/dispensa.ts` | confezioni, prodotti e codici a barre, Open Food Facts, date e scadenze, scarico (`scalaDispensa`, `riassumiDispensa`) |
 | `lib/preferenze.ts` | preferenze del menù della casa e di ciascuno, obiettivi di tutta la casa (`leggiObiettiviCasa`) |
 | `lib/proposta.ts` | "Proponi settimana": **solo calcolo** (`proponiSettimana`, `alternative`, `alternativaPerMe`, `lontanoDagliObiettivi`) |
+| `lib/testoRicetta.ts` | legge il testo incollato di una ricetta: **solo calcolo** (`leggiTestoRicetta`, `trovaNelCatalogo`, `adattaQuantita`) |
 | `lib/consiglio.ts` | consiglio di un pasto: **solo calcolo**, senza rete né interfaccia (`consiglia`, `obiettivoDelPasto`) |
 | `lib/date.ts` | giorni come stringhe `aaaa-mm-gg`, settimana dal lunedì |
 | `lib/foto.ts`, `lib/schermo.ts`, `lib/password.ts` | foto di copertina, schermo acceso, promemoria password |
@@ -135,6 +137,16 @@ fotografia del momento), `obiettivi` (una riga per persona).
   se in un pasto ha una voce sua, quelle comuni di quel pasto non la riguardano più. La usa il Diario per le proposte.
 - Stesso piatto, porzioni diverse: nel Diario la proposta di una voce del menù indica la porzione più adatta agli
   obiettivi di chi guarda (`porzioneConsigliata()` in `lib/consiglio.ts`), ed è quella che "L'ho mangiato" registra.
+
+## Nuova ricetta dall'app
+
+- `NuovaRicetta.tsx` salva con la stessa funzione usata per i reel, `importa_ricetta` (senza `reel_id`, quindi crea sempre
+  una ricetta nuova), poi scrive i valori: quelli digitati (`dichiarati`) oppure `stima_valori_ricetta` (`stimati`).
+- "Incolla il testo" passa da `leggiTestoRicetta()`: riconosce titolo, porzioni, ingredienti e passaggi, converte le misure
+  (kg, litri, cucchiai, tazze) e porta ogni quantità nell'unità dell'ingrediente del catalogo. Non salva niente da solo:
+  riempie il modulo. Le righe con quantità stimata, o con l'ingrediente non riconosciuto, sono segnate e vanno controllate.
+- Un ingrediente che manca si crea al momento con `ScegliIngrediente.tsx`.
+- `ricette.reel_url` contiene anche il link di una fonte che non è un reel: la scheda mostra "Apri la fonte".
 
 ## Proponi settimana
 

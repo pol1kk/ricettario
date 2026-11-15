@@ -122,7 +122,30 @@ async function crea(opzioni = {}) {
   await rotta('**/auth/v1/**', (r) => r.fulfill(j({})));
   await rotta('**/rest/v1/case**', (r) => r.fulfill(j([{ id: 'c1', nome: 'Casa', soglia_veloce_minuti: 20, porzioni_predefinite: 2 }])));
   await rotta('**/rest/v1/tag**', (r) => r.fulfill(j(TAG)));
-  await rotta('**/rest/v1/ricette**', (r) => r.fulfill(j(stato.ricette)));
+  await rotta('**/rest/v1/ricette**', (r, q) => {
+    if (q.method() === 'GET') return r.fulfill(j(stato.ricette));
+    Object.assign(stato.ricette.find((x) => x.id === idDi(q.url())), corpo(q));
+    return r.fulfill(vuota());
+  });
+  // come la funzione vera: crea la ricetta con ingredienti (cercati per nome nel catalogo) e tag
+  await rotta('**/rest/v1/rpc/importa_ricetta', (r, q) => {
+    const v = corpo(q).p;
+    const id = `99999999-0000-0000-0000-00000000000${stato.ricette.length}`;
+    chiamate.push(['ricetta+', v.titolo, v.porzioni, v.ingredienti.map((i) => `${i.nome}:${i.quantita}:${i.unita}`).join('|'), v.passaggi.length, v.tag.join(',')]);
+    stato.ricette.push({
+      id, titolo: v.titolo, autore: null, reel_url: v.reel_url ?? null, porzioni: v.porzioni, minuti_preparazione: v.minuti_preparazione, minuti_cottura: v.minuti_cottura,
+      minuti_totali: (v.minuti_preparazione ?? 0) + (v.minuti_cottura ?? 0) || null, note: null, da_verificare: false, note_verifica: null, copertina_path: null,
+      passaggi: v.passaggi.map((testo) => ({ testo })), kcal: null, proteine_g: null, carboidrati_g: null, grassi_g: null, valori_fonte: null,
+      ricetta_tag: v.tag.map((nome) => ({ tag_id: TAG.find((t) => t.nome === nome).id })),
+      ricetta_ingredienti: v.ingredienti.map((i, n) => {
+        const c = stato.catalogo.find((x) => x.nome === i.nome);
+        return { id: id + n, ingrediente_id: c.id, quantita: i.quantita, unita: i.quantita === null ? null : i.unita, testo_originale: i.testo_originale, gruppo: null, facoltativo: false, posizione: n + 1,
+          ingredienti: { nome: c.nome, icona: c.icona, tracciamento: c.tracciamento } };
+      }),
+    });
+    return r.fulfill(j(id));
+  });
+  await rotta('**/rest/v1/rpc/stima_valori_ricetta', (r) => r.fulfill(j([{ kcal: 432, proteine_g: 15.5, carboidrati_g: 80, grassi_g: 4.2, coperti: 3, totali: 3 }])));
   await rotta('**/rest/v1/reparti**', (r) => r.fulfill(j(REPARTI)));
   // chi usa l'app nelle prove è u1 (Paul); u2 è l'altra persona della casa
   await rotta('**/rest/v1/membri**', (r) => r.fulfill(j(stato.membri)));

@@ -13,6 +13,7 @@ import Menu from './screens/Menu';
 import Lista from './screens/Lista';
 import Barra from './screens/Barra';
 import Consiglio from './screens/Consiglio';
+import NuovaRicetta from './screens/NuovaRicetta';
 import Preferenze from './screens/Preferenze';
 import Cucina from './screens/Cucina';
 import Diario from './screens/Diario';
@@ -146,6 +147,10 @@ function Dentro({ session }: { session: Session }) {
 
   if (rotta.vista === 'preferenze' && dati.casa) {
     return <Preferenze dati={dati} casa={dati.casa} utente={utente} />;
+  }
+
+  if (rotta.vista === 'nuova-ricetta' && dati.casa) {
+    return <NuovaRicetta dati={dati} casa={dati.casa} ricarica={ricarica} />;
   }
 
   if (rotta.vista === 'cucina') {

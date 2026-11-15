@@ -196,7 +196,7 @@ export default function Cucina({
         </button>
         {ricetta.reel_url && (
           <a className="reel" href={ricetta.reel_url} target="_blank" rel="noreferrer">
-            Guarda il reel
+            {ricetta.reel_url.includes('instagram.') ? 'Guarda il reel' : 'Apri la fonte'}
           </a>
         )}
       </div>

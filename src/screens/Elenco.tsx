@@ -104,9 +104,14 @@ export default function Elenco({
         </button>
       </header>
 
-      <button className="contorno cosa-mangio" onClick={() => vai('/consiglio')}>
-        Consigliami un pasto
-      </button>
+      <div className="azioni-elenco">
+        <button className="contorno" onClick={() => vai('/consiglio')}>
+          Consigliami un pasto
+        </button>
+        <button className="contorno" onClick={() => vai('/nuova-ricetta')}>
+          Nuova ricetta
+        </button>
+      </div>
 
       {!passwordImpostata() && (
         <button className="avviso" onClick={() => vai('/impostazioni')}>

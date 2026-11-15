@@ -121,7 +121,7 @@ export default function SchedaRicetta({
             {ricetta.autore && <>Di {ricetta.autore}. </>}
             {ricetta.reel_url && (
               <a href={ricetta.reel_url} target="_blank" rel="noreferrer">
-                Guarda il reel
+                {ricetta.reel_url.includes('instagram.') ? 'Guarda il reel' : 'Apri la fonte'}
               </a>
             )}
           </p>

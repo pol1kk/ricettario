@@ -3358,3 +3358,134 @@ button.salva-preferenze {
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
+
+/* ---------- nuova ricetta ---------- */
+.azioni-elenco {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.azioni-elenco button {
+  padding-inline: 0.5rem;
+}
+
+.incolla {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1.25rem 0 1.5rem;
+  padding: 1rem;
+  background: var(--superficie);
+  border: 1.5px solid var(--linea);
+  border-radius: calc(var(--raggio) + 4px);
+}
+
+.nuova-ricetta textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--linea);
+  border-radius: var(--raggio);
+  background: var(--superficie);
+  color: inherit;
+  font: inherit;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.incolla textarea {
+  background: var(--carta);
+}
+
+.tre-campi {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  align-items: end;
+}
+
+.tre-campi > div {
+  min-width: 0;
+}
+
+.tre-campi label {
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.tre-campi input {
+  width: 100%;
+  padding-inline: 0.7rem;
+}
+
+.nuova-ricetta fieldset legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.nuova-ricetta fieldset > .nota {
+  margin: 0.4rem 0 0.6rem;
+}
+
+.righe-ingredienti {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.riga-ingrediente {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0 0.45rem 0.7rem;
+  border-left: 3px solid var(--linea);
+}
+
+/* quantità stimata o ingrediente ancora da scegliere: il bordo richiama l'attenzione */
+.riga-ingrediente[data-da-controllare='true'] {
+  border-left-color: var(--limone);
+}
+
+.riga-ingrediente .chi {
+  min-width: 0;
+}
+
+button.nome-ingrediente {
+  display: block;
+  width: auto;
+  min-height: 2.5rem;
+  margin: 0;
+  padding: 0.3rem 0;
+  font-weight: 650;
+  text-align: left;
+}
+
+button.contorno.nome-ingrediente {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.95rem;
+}
+
+.riga-ingrediente .originale {
+  display: block;
+  color: var(--tenue);
+  font-size: 0.85rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.riga-ingrediente .campo-unita input {
+  width: 4.4rem;
+}
+
+.riga-ingrediente .campo-unita span {
+  width: 2.4rem;
+}
+
+.riga-ingrediente .togli {
+  margin: 0;
+  padding-inline: 0.2rem;
+  font-size: 0.9rem;
+}

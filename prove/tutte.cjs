@@ -5,7 +5,7 @@ const { spawn } = require('child_process');
 const http = require('http');
 const path = require('path');
 
-const PROVE = ['diario', 'dispensa', 'consiglio', 'menu', 'proposta'];
+const PROVE = ['diario', 'dispensa', 'consiglio', 'menu', 'proposta', 'nuova-ricetta'];
 const scelte = process.argv.slice(2).length ? process.argv.slice(2) : PROVE;
 
 const risponde = () => new Promise((ok) => http.get('http://127.0.0.1:4173/ricettario/', (r) => { r.resume(); ok(true); }).on('error', () => ok(false)));
