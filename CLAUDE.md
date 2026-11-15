@@ -7,7 +7,8 @@ Questo file dice come si lavora qui. Leggilo tutto prima di toccare qualcosa, po
 
 1. `docs/ARCHITETTURA.md`: com'è fatta l'app (schermate, dati, database, funzionamento senza rete).
 2. `docs/PROCEDURE.md`: i passi esatti per modificare, provare, pubblicare, cambiare il database.
-3. Il documento di progetto `claude/app-ricette.md` (nel Project di claude.ai, non in questo repository):
+3. `docs/REVISIONE-GRAFICA.md`: **solo se** il lavoro è la revisione grafica dell'app.
+4. Il documento di progetto `claude/app-ricette.md` (nel Project di claude.ai, non in questo repository):
    stato attuale, decisioni di Paul, prossimo lavoro da fare. Lì ci sono anche i dati privati (id della casa, persone).
 
 Questo repository è **pubblico**. Non scrivere mai qui dentro: chiavi segrete, password, token, stringhe di
@@ -46,8 +47,9 @@ pubblica ed è l'unica ammessa.
 - Ogni schermata deve funzionare a 390 px di larghezza senza scorrimento orizzontale, con la tastiera e con
   uno screen reader (etichette vere, `aria-pressed`, `aria-expanded`), e rispettare `prefers-reduced-motion`.
 - Aspetto: sobrio e leggibile, transizioni brevi e naturali. Niente effetti decorativi, niente maiuscoletti,
-  niente schede tutte uguali con ombre. Lo stile definitivo e le icone degli ingredienti sono rimandati per
-  scelta di Paul: non rifare la grafica di tua iniziativa.
+  niente schede tutte uguali con ombre. L'aspetto attuale è provvisorio: Paul vuole una revisione grafica
+  completa, come lavoro a sé (`docs/REVISIONE-GRAFICA.md`). Finché non la chiede, non rifare la grafica di tua
+  iniziativa e tieni la logica in `src/lib/` separata dall'aspetto.
 
 ## Regole del database
 
